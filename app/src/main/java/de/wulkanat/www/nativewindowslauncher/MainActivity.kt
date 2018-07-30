@@ -17,7 +17,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         //Making Status- and Navbar fully transparent
         window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
-        glSurfaceView = GLSurf(this, getStatusBarHeightPixles())
+        glSurfaceView = GLSurf(this, getStatusBarHeightPixles(), getNavBarHeightPixels())
         setContentView(R.layout.activity_main)
 
         val glParams = RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT)
@@ -27,6 +27,15 @@ class MainActivity : AppCompatActivity() {
     fun getStatusBarHeightPixles(): Int {
         var result = 0
         val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        if (resourceId > 0) {
+            result = resources.getDimensionPixelSize(resourceId)
+        }
+        return result
+    }
+
+    fun getNavBarHeightPixels(): Int {
+        var result = 0
+        var resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
         if (resourceId > 0) {
             result = resources.getDimensionPixelSize(resourceId)
         }

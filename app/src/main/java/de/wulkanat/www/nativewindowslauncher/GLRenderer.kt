@@ -7,7 +7,7 @@ import android.opengl.Matrix
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class GLRenderer(mContext: Context, val statusBarHeightPixels: Int) : GLSurfaceView.Renderer {
+class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHeightPixels: Int) : GLSurfaceView.Renderer {
     private val mtrxProjection = FloatArray(16)
     private val mtrxView = FloatArray(16)
     private val mtrxProjectionAndView = FloatArray(16)
@@ -84,6 +84,7 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int) : GLSurfaceV
         windowsLauncher.glGrid = glGrid
 
         windowsLauncher.statusBarHeightPercentage = statusBarHeightPixels.toFloat() / mScreenHeight
+        windowsLauncher.navBarHeightPercentage = navBarHeightPixels.toFloat() / mScreenHeight
 
         windowsLauncher.cacheTileValues()
 

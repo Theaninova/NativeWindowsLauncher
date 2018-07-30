@@ -18,9 +18,9 @@ class WindowsLauncher(val parent: GLRenderer) {
 
 
         val overscrollNum1 = 0.0
-        val overscrollNum2 = 3.2
+        val overscrollNum2 = 1.0
         val overscrollNum3 = 0.0
-        val overscrollLoc = doubleArrayOf(0.5, 0.5)
+        val overscrollLoc = doubleArrayOf(0.71, 0.25)
 
         val exitDuration = 0.36
         val targetZoom = 3.0f
@@ -51,10 +51,20 @@ class WindowsLauncher(val parent: GLRenderer) {
         field = value
         overscrollDist = 0.2090278f * 2 - topMargin - value
     }
+    var navBarHeightPercentage: Float = 0.0f
+    var navBarHeight: Float = 0.0f
     var overscrollDist: Float = 0.2090278f * 2 - topMargin //0,20902 / Period
     val overscrollDuration = 0.25
     var todoOverscrollDist = 0.0f
     var overscrollElapsed = 0.0
+
+    var gridOverscrollHeight = 0.0f
+    var gridHeight = 0.0f
+    set (value) {
+        field = value
+        gridOverscrollHeight = (value - (glGrid[3] - glGrid[2] - statusBarHeight - navBarHeight)) * -1
+    }
+    var gridHeightSpan = 0
 
     var scrollDist = 0.0f
 
@@ -67,11 +77,11 @@ class WindowsLauncher(val parent: GLRenderer) {
     val inds = shortArrayOf(0, 1, 2, 0, 2, 3)
 
     //Native functions for Calculating Animations
-    external fun calcACache(a: Double, b: Double, x2: Double, y2: Double): Double
-    external fun calcBCache(a: Double, b: Double, x2: Double, y2: Double): Double
-    external fun expAccInterpolator(precalc_a: Double, precalc_b: Double, initial_a: Double, s: Double): Double
+    //external fun calcACache(a: Double, b: Double, x2: Double, y2: Double): Double
+    //external fun calcBCache(a: Double, b: Double, x2: Double, y2: Double): Double
+    //external fun expAccInterpolator(precalc_a: Double, precalc_b: Double, initial_a: Double, s: Double): Double
 
-    var in_precalc_a = 0.0
+    /*var in_precalc_a = 0.0
     var in_precalc_b = 0.0
     var in_precalc_c = 0.0
     var in_precalc_d = 0.0
@@ -79,110 +89,99 @@ class WindowsLauncher(val parent: GLRenderer) {
     var overscroll_precalc_a = 0.0
     var overscroll_precalc_b = 0.0
     var overscroll_precalc_c = 0.0
-    var overscroll_precalc_d = 0.0
+    var overscroll_precalc_d = 0.0*/
 
-    // Used to load the 'native-lib' library on application startup.
     init {
-        System.loadLibrary("native-lib")
+        //System.loadLibrary("native-lib")
 
-        in_precalc_a = calcACache(fadeInNum1, fadeInNum2, fadeInLoc[0], fadeInLoc[1])
-        in_precalc_b = calcBCache(fadeInNum1, fadeInNum2, fadeInLoc[0], fadeInLoc[1])
+        //in_precalc_a = calcACache(fadeInNum1, fadeInNum2, fadeInLoc[0], fadeInLoc[1])
+        //in_precalc_b = calcBCache(fadeInNum1, fadeInNum2, fadeInLoc[0], fadeInLoc[1])
 
-        in_precalc_c = calcACache(fadeInNum3, fadeInNum2, 1 - fadeInLoc[0], 1 - fadeInLoc[1])
-        in_precalc_d = calcBCache(fadeInNum3, fadeInNum2, 1 - fadeInLoc[0], 1 - fadeInLoc[1])
+        //in_precalc_c = calcACache(fadeInNum3, fadeInNum2, 1 - fadeInLoc[0], 1 - fadeInLoc[1])
+        //in_precalc_d = calcBCache(fadeInNum3, fadeInNum2, 1 - fadeInLoc[0], 1 - fadeInLoc[1])
 
-        overscroll_precalc_a = calcACache(overscrollNum1, overscrollNum2, overscrollLoc[0], overscrollLoc[1])
-        overscroll_precalc_b = calcACache(overscrollNum1, overscrollNum2, overscrollLoc[0], overscrollLoc[1])
+        //overscroll_precalc_a = calcACache(overscrollNum1, overscrollNum2, overscrollLoc[0], overscrollLoc[1])
+        //overscroll_precalc_b = calcACache(overscrollNum1, overscrollNum2, overscrollLoc[0], overscrollLoc[1])
 
-        overscroll_precalc_c = calcACache(overscrollNum3, overscrollNum2, 1 - overscrollLoc[0], 1 - overscrollLoc[1])
-        overscroll_precalc_d = calcACache(overscrollNum3, overscrollNum2, 1 - overscrollLoc[0], 1 - overscrollLoc[1])
+        //overscroll_precalc_c = calcACache(overscrollNum3, overscrollNum2, 1 - overscrollLoc[0], 1 - overscrollLoc[1])
+        //overscroll_precalc_d = calcACache(overscrollNum3, overscrollNum2, 1 - overscrollLoc[0], 1 - overscrollLoc[1])
 
-        tiles.add(Tile(0, 0, 1, 1))
-        tiles.add(Tile(1, 0, 1, 1))
-        tiles.add(Tile(0, 1, 1, 1))
-        tiles.add(Tile(1, 1, 1, 1))
-        tiles.add(Tile(2, 0, 2, 2))
-        tiles.add(Tile(4, 0, 2, 2))
-        tiles.add(Tile(0, 2, 2, 2))
-        tiles.add(Tile(2, 2, 4, 2))
-        tiles.add(Tile(0, 4, 2, 2))
-        tiles.add(Tile(2, 4, 1, 1))
-        tiles.add(Tile(3, 4, 1, 1))
-        tiles.add(Tile(2, 5, 1, 1))
-        tiles.add(Tile(3, 5, 1, 1))
-        tiles.add(Tile(4, 4, 2, 2))
-        tiles.add(Tile(0, 6, 4, 2))
-        tiles.add(Tile(4, 6, 2, 2))
-        tiles.add(Tile(0, 8, 2, 2))
-        tiles.add(Tile(2, 8, 2, 2))
-        tiles.add(Tile(4, 8, 1, 1))
-        tiles.add(Tile(5, 8, 1, 1))
-        tiles.add(Tile(4, 9, 1, 1))
-        tiles.add(Tile(5, 9, 1, 1))
-        tiles.add(Tile(0, 10, 2, 2))
-        tiles.add(Tile(2, 10, 4, 2))
+        addTile(Tile(0, 0, 1, 1))
+        addTile(Tile(1, 0, 1, 1))
+        addTile(Tile(0, 1, 1, 1))
+        addTile(Tile(1, 1, 1, 1))
+        addTile(Tile(2, 0, 2, 2))
+        addTile(Tile(4, 0, 2, 2))
+        addTile(Tile(0, 2, 2, 2))
+        addTile(Tile(2, 2, 4, 2))
+        addTile(Tile(0, 4, 2, 2))
+        addTile(Tile(2, 4, 1, 1))
+        addTile(Tile(3, 4, 1, 1))
+        addTile(Tile(2, 5, 1, 1))
+        addTile(Tile(3, 5, 1, 1))
+        addTile(Tile(4, 4, 2, 2))
+        addTile(Tile(0, 6, 4, 2))
+        addTile(Tile(4, 6, 2, 2))
+        addTile(Tile(0, 8, 2, 2))
+        addTile(Tile(2, 8, 2, 2))
+        addTile(Tile(4, 8, 1, 1))
+        addTile(Tile(5, 8, 1, 1))
+        addTile(Tile(4, 9, 1, 1))
+        addTile(Tile(5, 9, 1, 1))
+        addTile(Tile(0, 10, 2, 2))
+        addTile(Tile(2, 10, 4, 2))
 
+    }
+
+    fun addTile(tile: Tile) {
+        if (tile.posY + tile.spanY > gridHeightSpan) {
+            gridHeightSpan = tile.posY + tile.spanY
+            gridHeight = gridHeightSpan.toFloat() * tileAndMarginCache
+        }
+        tiles.add(tile)
     }
 
     fun performEnterAnimation(progress: Double) {
-        if (progress < fadeInLoc[0]) {
+        /*if (progress < fadeInLoc[0]) {
             expAccInterpolator(in_precalc_a, in_precalc_b, fadeInNum1, progress)
         } else {
             expAccInterpolator(in_precalc_c, in_precalc_d, fadeInNum3, progress)
-        }
+        }*/
     }
 
     fun update(elapsed: Double) {
-        if (parent.fingerDown) {
-            if (scrollDist >= overscrollDist) {/*Do nothing*/}
-            else if (scrollDist > 0)
-                scrollDist -= parent.dyTouch / 6
-            else
-                scrollDist -= parent.dyTouch
-        } else {
+        //if (parent.fingerDown) {
+        if ((scrollDist >= overscrollDist) || (scrollDist <= gridOverscrollHeight - overscrollDist)) {parent.dyTouch = 0.0f}
+        else if ((scrollDist > 0) || (scrollDist < gridOverscrollHeight)) {
+            scrollDist -= parent.dyTouch / 6
+            if (parent.fingerDown) {
+                todoOverscrollDist = scrollDist
+                overscrollElapsed = overscrollDuration
+            }
+        } else
+            scrollDist -= parent.dyTouch
+
+        if (!parent.fingerDown) {
             if (scrollDist > 0.0f) {
-                parent.dyTouch = 0.0f
-
-                if (overscrollElapsed == overscrollDuration) {
-                    todoOverscrollDist = scrollDist
-                    overscrollElapsed = overscrollDuration
-                }
-
                 scrollDist = todoOverscrollDist * overscrollInterpolator.getMulti(overscrollElapsed, overscrollDuration).toFloat()
 
                 if (overscrollElapsed <= 0) {
                     todoOverscrollDist = 0.0f
                     scrollDist = 0.0f
-                    overscrollElapsed = overscrollDuration
+                    parent.dyTouch = 0.0f
                 } else {
                     overscrollElapsed -= elapsed
                 }
+            } else if (scrollDist < gridOverscrollHeight) {
+
             } else {
-                parent.dyTouch -= elapsed.toFloat() * (parent.dyTouch / 1.2f)
+                parent.dyTouch -= elapsed.toFloat() * (parent.dyTouch / 1.5f)
                 scrollDist -= parent.dyTouch
-            }
-        }
 
-        /*if (scrollDist >= overscrollDist && parent.dyTouch < 0) {
-
-        } else if (scrollDist > 0.0f && !parent.fingerDown) {
-            if (todoOverscrollDist == 0.0f) {
                 todoOverscrollDist = scrollDist
                 overscrollElapsed = overscrollDuration
             }
-
-            scrollDist = todoOverscrollDist * overscrollInterpolator.getMulti(overscrollElapsed, overscrollDuration).toFloat()
-
-            if (overscrollElapsed <= 0) {
-                todoOverscrollDist = 0.0f
-                scrollDist = 0.0f
-            } else {
-                overscrollElapsed -= elapsed
-            }
-        } else if (scrollDist > 0 && parent.dyTouch < 0)
-            scrollDist -= parent.dyTouch / 6
-        else
-            scrollDist -= parent.dyTouch*/
+        }
 
         for (tile in tiles) {
             //TODO: calc in seperate Thread
@@ -243,5 +242,8 @@ class WindowsLauncher(val parent: GLRenderer) {
         }
 
         statusBarHeight = (glGrid[3] - glGrid[2]) * statusBarHeightPercentage
+        navBarHeight = (glGrid[3] - glGrid[2]) * navBarHeightPercentage
+
+        gridHeight = gridHeightSpan.toFloat() * tileAndMarginCache
     }
 }

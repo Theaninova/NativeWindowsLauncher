@@ -9,8 +9,8 @@ import android.R.attr.y
 
 
 
-class GLSurf(context: Context, statusBarHeightPixels: Int) : GLSurfaceView(context) {
-    val mRenderer = GLRenderer(context, statusBarHeightPixels)
+class GLSurf(context: Context, statusBarHeightPixels: Int, navBarHeightPixels: Int) : GLSurfaceView(context) {
+    val mRenderer = GLRenderer(context, statusBarHeightPixels, navBarHeightPixels)
     var previousX = 0.0f
     var previousY = 0.0f
 
