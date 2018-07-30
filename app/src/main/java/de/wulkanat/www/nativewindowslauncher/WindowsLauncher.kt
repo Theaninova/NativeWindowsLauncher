@@ -3,18 +3,19 @@ package de.wulkanat.www.nativewindowslauncher
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
+
 class WindowsLauncher(val parent: GLRenderer) {
     companion object {
         val enterDuration = 0.5
         val enterRowZoomDifference = 0.075f
         val initalZoom = 0.6f
-        val fadeInEnd = 0.05f
+        val fadeInEnd = 0.00f
         val fadeInStart = 0.15f
 
         val fadeInNum1 = 0.0
-        val fadeInNum2 = 0.6
-        val fadeInNum3 = 7.5
-        val fadeInLoc = doubleArrayOf(0.8, 0.2)
+        val fadeInNum2 = 0.3
+        val fadeInNum3 = 3.4
+        val fadeInLoc = doubleArrayOf(0.5, 0.1)
 
 
         val overscrollNum1 = 0.0
@@ -24,7 +25,7 @@ class WindowsLauncher(val parent: GLRenderer) {
 
         val exitDuration = 0.36
         val targetZoom = 3.0f
-        val fadeOutDist = 0.5f
+        val fadeOutEnd = 0.5f
         val fadeOutStart = 0.15f
 
         val appTileOffset = 2.0f
@@ -32,6 +33,8 @@ class WindowsLauncher(val parent: GLRenderer) {
         val fadeOutNum2 = 1.1
         val fadeOutNum3 = 1.5
         val fadeOutLoc = doubleArrayOf(0.43, 0.29)
+
+        val inds = shortArrayOf(0, 1, 2, 0, 2, 3)
     }
 
     var fadeInInterpolator = AccExpInterpolator(fadeInNum1, fadeInNum2, fadeInNum3, fadeInLoc)
@@ -74,7 +77,13 @@ class WindowsLauncher(val parent: GLRenderer) {
 
     var glGrid: FloatArray = FloatArray(4)
 
-    val inds = shortArrayOf(0, 1, 2, 0, 2, 3)
+    var startTileIndex = 0
+    var rowsOnScreen = 0.0f
+    var enterProgress = 0.0
+
+    var exiting = false
+
+    var exitAnimTime = 0.0
 
     init {
         addTile(Tile(0, 0, 1, 1))
@@ -125,17 +134,85 @@ class WindowsLauncher(val parent: GLRenderer) {
         tiles.add(tile)
     }
 
+    fun initEnterAnimation() {
+        //TODO: Properly init
+
+        rowsOnScreen = (glGrid[3] - glGrid[2]) / tileAndMarginCache
+        startTileIndex = ((((glGrid[3] - glGrid[2]) - statusBarHeight - topMargin + scrollDist)) / tileAndMarginCache).toInt()
+    }
+
+    fun initExitAnimation() {
+        rowsOnScreen = (glGrid[3] - glGrid[2]) / tileAndMarginCache
+
+        exitAnimTime = exitDuration / (2.0 * rowsOnScreen)
+    }
+
     fun performEnterAnimation(progress: Double) {
-        TODO("Not implemented")
+        for (tile in tiles) {
+            val tempZoom = 1.0f - (initalZoom - (startTileIndex - (tile.posY + tile.spanY - 1.0f)) * enterRowZoomDifference)
+            val zoom = 1.0f - (fadeInInterpolator.getMulti(progress, enterDuration) * tempZoom).toFloat()
+
+            var alpha = (zoom - (1f - fadeInStart)) / ((1f - fadeInEnd) - (1f - fadeInStart))
+            if (zoom > 1f - fadeInEnd) {
+                alpha = 1f
+            } else if (zoom < 1f - fadeInStart) {
+                alpha = 0f
+            }
+
+            calculateTile(tile, zoom, floatArrayOf(0.24313f, 0.396078f, 1.0f, alpha))
+        }
+    }
+
+    fun performExitAnimation(progress: Double) {
+        for (tile in tiles) {
+            val tileTime = exitDuration - progress - tile.posY * exitAnimTime
+
+            //TODO: Tile offset
+            //if (tile[0][0] == location[0] && tile[0][1] == location[1]) {
+            //    tileTime -= appTileOffset * animTime;
+            //}
+
+            var newZoom = 1f
+            if (tileTime > 0.0)
+                newZoom = 1f + fadeOutInterpolator.getMulti(tileTime, exitDuration).toFloat() * (targetZoom - 1f)
+
+            var alpha = 1f - (newZoom - (1f + fadeOutStart)) / ((fadeOutEnd + 1f) - (fadeOutStart + 1f))
+            if (newZoom > 1f + fadeOutEnd) {
+                alpha = 0f
+            } else if (newZoom < 1 + fadeOutStart) {
+                alpha = 1f
+            }
+
+            calculateTile(tile, newZoom, floatArrayOf(0.24313f, 0.396078f, 1.0f, alpha))
+        }
     }
 
     fun update(elapsed: Double) {
         handleTouch(elapsed)
 
-        for (tile in tiles) {
+        /*for (tile in tiles) {
             //TODO: calc in seperate Thread
-            calculateTile(tile, 1.0f)
+            calculateTile(tile, 0.4f, floatArrayOf(1.0f, 0.0f, 0.0f, 1.0f))
+        }*/
+
+        if (enterProgress <= 0.0) {
+            exiting = !exiting
+            if (exiting)
+                enterProgress = exitDuration
+            else
+                enterProgress = enterDuration
         }
+
+        if (exiting) {
+            initExitAnimation()
+            performExitAnimation(enterProgress)
+        } else {
+            initEnterAnimation()
+            performEnterAnimation(enterProgress)
+        }
+
+
+        enterProgress -= elapsed
 
         //TODO: multithreading, check for GPU finished
 
@@ -213,15 +290,15 @@ class WindowsLauncher(val parent: GLRenderer) {
         }
     }
 
-    fun calculateTile(tile: Tile, zoom: Float) {
+    fun calculateTile(tile: Tile, zoom: Float, color: FloatArray) {
         val yPos = (glGrid[2] + topMargin + tile.posY.toFloat() * tileAndMarginCache + scrollDist + statusBarHeight) * zoom
         val xPos = tileXPosChache[tile.posX] * zoom
         val xSize = (tileSizeCache + (tile.spanX - 1).toFloat() * tileAndMarginCache) * zoom
         val ySize = (tileSizeCache + (tile.spanY - 1).toFloat() * tileAndMarginCache) * zoom
 
-        val zPos = 1 - 1 / zoom
-        if (zoom < 0)
-            zPos -(1 - zoom)
+        var zPos = 0.5f + ((1f / zoom) / 2f)
+        if (zoom < 1f)
+            zPos = 0.5f - ((1f - zoom) / 2f)
 
         val verts = floatArrayOf(
                 xPos        , yPos        , zPos,
@@ -230,7 +307,7 @@ class WindowsLauncher(val parent: GLRenderer) {
                 xPos        , yPos + ySize, zPos
         )
 
-        tile.colorBuffer = floatArrayOf(1.0f, 1.0f, 1.0f, 1.0f)
+        tile.colorBuffer = color
 
         val bb = ByteBuffer.allocateDirect(verts.size * 4)
         bb.order(ByteOrder.nativeOrder())
@@ -243,12 +320,6 @@ class WindowsLauncher(val parent: GLRenderer) {
         tile.drawListBuffer = dlb.asShortBuffer()
         tile.drawListBuffer!!.put(inds)
         tile.drawListBuffer!!.position(0)
-
-        /*val col = ByteBuffer.allocateDirect(color.size * 4)
-        bb.order(ByteOrder.nativeOrder())
-        tile.colorBuffer = col.asFloatBuffer()
-        tile.colorBuffer!!.put(color)
-        tile.colorBuffer!!.position(0)*/
     }
 
     fun cacheTileValues() {

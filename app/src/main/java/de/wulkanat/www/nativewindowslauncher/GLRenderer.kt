@@ -105,7 +105,8 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
     }
 
     override fun onSurfaceCreated(p0: GL10?, p1: EGLConfig?) {
-        //setupTriangle()
+        GLES20.glEnable(GLES20.GL_BLEND)
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
 
         GLES20.glClearColor(0f, 0f, 0f, 1f)
 
