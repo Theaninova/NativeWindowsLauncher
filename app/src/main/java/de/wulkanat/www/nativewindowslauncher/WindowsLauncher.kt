@@ -79,11 +79,18 @@ class WindowsLauncher(val parent: GLRenderer) {
 
     var startTileIndex = 0
     var rowsOnScreen = 0.0f
-    var enterProgress = 0.0
+    var animProgress = 0.0
 
     var exiting = false
+    var entering = false
+
+    val tapTolerance = 0.05f
+    var tapPosition  = FloatArray(2)
+    var tapInitiated = false
+    var timeSinceTap = 0.0
 
     var exitAnimTime = 0.0
+    var exitTapTileLoc = IntArray(2)
 
     init {
         addTile(Tile(0, 0, 1, 1))
@@ -135,15 +142,22 @@ class WindowsLauncher(val parent: GLRenderer) {
     }
 
     fun initEnterAnimation() {
-        //TODO: Properly init
+        animProgress = enterDuration
+        entering = true
+        exiting = false
 
         rowsOnScreen = (glGrid[3] - glGrid[2]) / tileAndMarginCache
         startTileIndex = ((((glGrid[3] - glGrid[2]) - statusBarHeight - topMargin + scrollDist)) / tileAndMarginCache).toInt()
     }
 
-    fun initExitAnimation() {
-        rowsOnScreen = (glGrid[3] - glGrid[2]) / tileAndMarginCache
+    fun initExitAnimation(location: IntArray) {
+        animProgress = exitDuration
+        entering = false
+        exiting = true
 
+        exitTapTileLoc = location
+
+        rowsOnScreen = (glGrid[3] - glGrid[2]) / tileAndMarginCache
         exitAnimTime = exitDuration / (2.0 * rowsOnScreen)
     }
 
@@ -165,12 +179,11 @@ class WindowsLauncher(val parent: GLRenderer) {
 
     fun performExitAnimation(progress: Double) {
         for (tile in tiles) {
-            val tileTime = exitDuration - progress - tile.posY * exitAnimTime
+            var tileTime = exitDuration - progress - tile.posY * exitAnimTime
 
-            //TODO: Tile offset
-            //if (tile[0][0] == location[0] && tile[0][1] == location[1]) {
-            //    tileTime -= appTileOffset * animTime;
-            //}
+            if (tile.posX == exitTapTileLoc[0] && tile.posY == exitTapTileLoc[1]) {
+                tileTime -= appTileOffset;
+            }
 
             var newZoom = 1f
             if (tileTime > 0.0)
@@ -190,29 +203,26 @@ class WindowsLauncher(val parent: GLRenderer) {
     fun update(elapsed: Double) {
         handleTouch(elapsed)
 
-        /*for (tile in tiles) {
-            //TODO: calc in seperate Thread
-            calculateTile(tile, 0.4f, floatArrayOf(1.0f, 0.0f, 0.0f, 1.0f))
-        }*/
-
-        if (enterProgress <= 0.0) {
-            exiting = !exiting
-            if (exiting)
-                enterProgress = exitDuration
-            else
-                enterProgress = enterDuration
-        }
-
-        if (exiting) {
-            initExitAnimation()
-            performExitAnimation(enterProgress)
+        if (animProgress <= 0.0) {
+            for (tile in tiles) {
+                //TODO: calc in seperate Thread
+                calculateTile(tile, 1.0f, floatArrayOf(0.24313f, 0.396078f, 1.0f, 1.0f))
+            }
         } else {
-            initEnterAnimation()
-            performEnterAnimation(enterProgress)
+            if (entering) {
+                performEnterAnimation(animProgress)
+            } else if (exiting) {
+                performExitAnimation(animProgress)
+            }
+
+            animProgress -= elapsed
         }
 
-
-        enterProgress -= elapsed
+        if (tapInitiated) {
+            timeSinceTap += elapsed
+        } else {
+            timeSinceTap = 0.0
+        }
 
         //TODO: multithreading, check for GPU finished
 
@@ -224,7 +234,44 @@ class WindowsLauncher(val parent: GLRenderer) {
         }
     }
 
+    fun tileTouched(tile: Tile): Boolean {
+        val t = floatArrayOf(
+                tileXPosChache[tile.posX],
+                glGrid[2] + topMargin + tile.posY.toFloat() * tileAndMarginCache + scrollDist + statusBarHeight,
+                tileSizeCache + (tile.spanX - 1).toFloat() * tileAndMarginCache,
+                tileSizeCache + (tile.spanY - 1).toFloat() * tileAndMarginCache
+        )
+
+        return parent.xTouchPos > t[0] &&
+               parent.xTouchPos < t[0] + t[2] &&
+               -parent.yTouchPos > t[1] &&
+               -parent.yTouchPos < t[1] + t[3]
+    }
+
+    fun onTapEvent() {
+        for (tile in tiles) {
+            if (tileTouched(tile)) {
+                //TODO: handle touch
+                initExitAnimation(intArrayOf(tile.posX, tile.posY))
+            }
+        }
+    }
+
     fun handleTouch(elapsed: Double) {
+
+        if (Math.abs(parent.xTouchPos - tapPosition[0]) <= tapTolerance && Math.abs(parent.yTouchPos - tapPosition[1]) <= tapTolerance) {
+            if (parent.fingerDown) {
+                tapInitiated = true
+            } else if (tapInitiated) {
+                onTapEvent()
+                tapInitiated = false
+            }
+        } else {
+            tapInitiated = false
+            tapPosition[0] = parent.xTouchPos
+            tapPosition[1] = parent.yTouchPos
+        }
+
         if ((scrollDist >= overscrollDist) || (scrollDist <= gridOverscrollHeight - overscrollDist)) {
             parent.yVelocityTouch = 0.0f
             parent.dyTouch = 0.0f

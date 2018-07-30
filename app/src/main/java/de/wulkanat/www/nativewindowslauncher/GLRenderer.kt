@@ -14,6 +14,10 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
 
     var dxTouch: Float = 0.0f
     var dyTouch: Float = 0.0f
+
+    var xTouchPos: Float = 0.0f
+    var yTouchPos: Float = 0.0f
+
     //glGrid units per second per second
     var xVelocityTouch: Float = 0.0f
     var yVelocityTouch: Float = 0.0f
@@ -44,6 +48,7 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
 
     fun onResume() {
         mLastTime = System.currentTimeMillis()
+        windowsLauncher.initEnterAnimation()
     }
 
     override fun onDrawFrame(p0: GL10?) {
@@ -64,15 +69,6 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
         for (tile in windowsLauncher.tiles) {
             drawTile(tile, m)
         }
-
-        /*drawTile(arrayOf(intArrayOf(0, 0), intArrayOf(1, 1)), 1.0f, 1.0f, m)
-        drawTile(arrayOf(intArrayOf(1, 0), intArrayOf(1, 1)), 1.0f, 1.0f, m)
-        drawTile(arrayOf(intArrayOf(0, 1), intArrayOf(1, 1)), 1.0f, 1.0f, m)
-        drawTile(arrayOf(intArrayOf(1, 1), intArrayOf(1, 1)), 1.0f, 1.0f, m)
-        drawTile(arrayOf(intArrayOf(2, 0), intArrayOf(2, 2)), 1.0f, 1.0f, m)
-        drawTile(arrayOf(intArrayOf(4, 0), intArrayOf(2, 2)), 1.0f, 1.0f, m)
-        drawTile(arrayOf(intArrayOf(0, 2), intArrayOf(2, 2)), 1.0f, 1.0f, m)
-        drawTile(arrayOf(intArrayOf(2, 2), intArrayOf(4, 2)), 1.0f, 1.0f, m)*/
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
@@ -134,44 +130,4 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, inds.size, GLES20.GL_UNSIGNED_SHORT, tile.renderDrawListBuffer)
         GLES20.glDisableVertexAttribArray(mPositionHandle)
     }
-
-    /*fun drawTile(tile: Array<IntArray>, zoom: Float, alpha: Float, m: FloatArray) {
-        val yOffset = 0.0f
-        val yPos = (glGrid[2] + windowsLauncher.topMargin + tile[0][1] * windowsLauncher.tileAndMarginCache + yOffset + windowsLauncher.statusBarHeight) * zoom
-        val xPos = windowsLauncher.tileXPosChache[tile[0][0]] * zoom
-        val xSize = (windowsLauncher.tileSizeCache + (tile[1][0] - 1) * windowsLauncher.tileAndMarginCache) * zoom
-        val ySize = (windowsLauncher.tileSizeCache + (tile[1][1] - 1) * windowsLauncher.tileAndMarginCache) * zoom
-
-        val zPos = 1 - 1 / zoom
-        if (zoom < 0)
-            zPos -(1 - zoom)
-
-        val verts = floatArrayOf(
-                xPos        , yPos        , zPos,
-                xPos + xSize, yPos        , zPos,
-                xPos + xSize, yPos + ySize, zPos,
-                xPos        , yPos + ySize, zPos
-        )
-
-        val bb = ByteBuffer.allocateDirect(verts.size * 4)
-        bb.order(ByteOrder.nativeOrder())
-        val vertBuffer = bb.asFloatBuffer()
-        vertBuffer.put(verts)
-        vertBuffer.position(0)
-
-        val dlb = ByteBuffer.allocateDirect(inds.size * 2)
-        dlb.order(ByteOrder.nativeOrder())
-        val drawListBuffer = dlb.asShortBuffer()
-        drawListBuffer.put(inds)
-        drawListBuffer.position(0)
-
-        val mPositionHandle = GLES20.glGetAttribLocation(RiGraphicTools.sp_SolidColor, "vPosition")
-        GLES20.glEnableVertexAttribArray(mPositionHandle)
-        GLES20.glVertexAttribPointer(mPositionHandle, 3, GLES20.GL_FLOAT, false,0, vertBuffer)
-
-        val mtrxhandle = GLES20.glGetUniformLocation(RiGraphicTools.sp_SolidColor, "uMVPMatrix")
-        GLES20.glUniformMatrix4fv(mtrxhandle, 1, false, m, 0)
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, inds.size, GLES20.GL_UNSIGNED_SHORT, drawListBuffer)
-        GLES20.glDisableVertexAttribArray(mPositionHandle)
-    }*/
 }
