@@ -35,15 +35,22 @@ class GLSurf(context: Context, statusBarHeightPixels: Int) : GLSurfaceView(conte
     override fun onTouchEvent(e: MotionEvent?): Boolean {
         when (e!!.action) {
             MotionEvent.ACTION_MOVE -> {
-
-                mRenderer.dxTouch = e.x - previousX
-                mRenderer.dyTouch = e.y - previousY
+                mRenderer.dxTouch = (e.x - previousX) / mRenderer.mScreenWidth * 2
+                mRenderer.dyTouch = ((e.y - previousY)  / mRenderer.mScreenHeight) * (mRenderer.glGrid[2] - mRenderer.glGrid[3])
             }
 
-            else -> {
-                mRenderer.dxTouch = 0.0f
-                mRenderer.dyTouch = 0.0f
+            MotionEvent.ACTION_DOWN -> {
+                mRenderer.fingerDown = true
             }
+
+            MotionEvent.ACTION_UP -> {
+                mRenderer.fingerDown = false
+            }
+
+            //else -> {
+            //    mRenderer.dxTouch = 0.0f
+            //    mRenderer.dyTouch = 0.0f
+            //}
         }
 
         previousX = e.x

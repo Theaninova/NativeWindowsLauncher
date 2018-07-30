@@ -14,6 +14,7 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int) : GLSurfaceV
 
     var dxTouch: Float = 0.0f
     var dyTouch: Float = 0.0f
+    var fingerDown = false
 
     var glGrid = floatArrayOf(-1.0f, 1.0f, 1.0f, -1.0f)
 
@@ -28,7 +29,7 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int) : GLSurfaceV
     var mLastTime: Long = 0
     var mProgram: Int? = null
 
-    var windowsLauncher = WindowsLauncher()
+    var windowsLauncher = WindowsLauncher(this)
 
     init {
         mLastTime = System.currentTimeMillis()
@@ -47,7 +48,7 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int) : GLSurfaceV
         if (now == mLastTime) return
         val elapsed = now - mLastTime
 
-        windowsLauncher.update(elapsed.toDouble() / 1000, (dxTouch / mScreenWidth) * 2, (dyTouch / mScreenHeight) * (glGrid[2] - glGrid[3]))
+        windowsLauncher.update(elapsed.toDouble() / 1000)
 
         render(mtrxProjectionAndView)
 

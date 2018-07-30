@@ -3,7 +3,7 @@ package de.wulkanat.www.nativewindowslauncher
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class WindowsLauncher() {
+class WindowsLauncher(val parent: GLRenderer) {
     companion object {
         val enterDuration = 0.5
         val enterRowZoomDifference = 0.075f
@@ -132,10 +132,40 @@ class WindowsLauncher() {
         }
     }
 
-    fun update(elapsed: Double, dxTouch: Float, dyTouch: Float) {
-        if (scrollDist >= overscrollDist && dyTouch < 0) {
+    fun update(elapsed: Double) {
+        if (parent.fingerDown) {
+            if (scrollDist >= overscrollDist) {/*Do nothing*/}
+            else if (scrollDist > 0)
+                scrollDist -= parent.dyTouch / 6
+            else
+                scrollDist -= parent.dyTouch
+        } else {
+            if (scrollDist > 0.0f) {
+                parent.dyTouch = 0.0f
 
-        } else if (scrollDist > 0.0f && dyTouch == 0.0f) {
+                if (overscrollElapsed == overscrollDuration) {
+                    todoOverscrollDist = scrollDist
+                    overscrollElapsed = overscrollDuration
+                }
+
+                scrollDist = todoOverscrollDist * overscrollInterpolator.getMulti(overscrollElapsed, overscrollDuration).toFloat()
+
+                if (overscrollElapsed <= 0) {
+                    todoOverscrollDist = 0.0f
+                    scrollDist = 0.0f
+                    overscrollElapsed = overscrollDuration
+                } else {
+                    overscrollElapsed -= elapsed
+                }
+            } else {
+                parent.dyTouch -= elapsed.toFloat() * (parent.dyTouch / 1.2f)
+                scrollDist -= parent.dyTouch
+            }
+        }
+
+        /*if (scrollDist >= overscrollDist && parent.dyTouch < 0) {
+
+        } else if (scrollDist > 0.0f && !parent.fingerDown) {
             if (todoOverscrollDist == 0.0f) {
                 todoOverscrollDist = scrollDist
                 overscrollElapsed = overscrollDuration
@@ -149,10 +179,10 @@ class WindowsLauncher() {
             } else {
                 overscrollElapsed -= elapsed
             }
-        } else if (scrollDist > 0 && dyTouch < 0)
-            scrollDist -= dyTouch / 6
+        } else if (scrollDist > 0 && parent.dyTouch < 0)
+            scrollDist -= parent.dyTouch / 6
         else
-            scrollDist -= dyTouch
+            scrollDist -= parent.dyTouch*/
 
         for (tile in tiles) {
             //TODO: calc in seperate Thread
