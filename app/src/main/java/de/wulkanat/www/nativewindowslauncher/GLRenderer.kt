@@ -107,7 +107,7 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
     override fun onSurfaceCreated(p0: GL10?, p1: EGLConfig?) {
         //setupTriangle()
 
-        GLES20.glClearColor(0f, 0f, 1f, 1f)
+        GLES20.glClearColor(0f, 0f, 0f, 1f)
 
         val vertexShader = RiGraphicTools.loadShader(GLES20.GL_VERTEX_SHADER, RiGraphicTools.vs_SolidColor)
         val fragmentShader = RiGraphicTools.loadShader(GLES20.GL_FRAGMENT_SHADER, RiGraphicTools.fs_SolidColor)
@@ -124,6 +124,9 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
         val mPositionHandle = GLES20.glGetAttribLocation(RiGraphicTools.sp_SolidColor, "vPosition")
         GLES20.glEnableVertexAttribArray(mPositionHandle)
         GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, tile.renderVertBuffer)
+
+        val colorhandle = GLES20.glGetUniformLocation(RiGraphicTools.sp_SolidColor, "uColor")
+        GLES20.glUniform4fv(colorhandle, 1, tile.renderColorBuffer, 0)
 
         val mtrxhandle = GLES20.glGetUniformLocation(RiGraphicTools.sp_SolidColor, "uMVPMatrix")
         GLES20.glUniformMatrix4fv(mtrxhandle, 1, false, m, 0)

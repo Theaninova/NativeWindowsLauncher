@@ -143,6 +143,7 @@ class WindowsLauncher(val parent: GLRenderer) {
             //Swap buffers in tiles
             tile.renderDrawListBuffer = tile.drawListBuffer
             tile.renderVertBuffer = tile.vertBuffer
+            tile.renderColorBuffer = tile.colorBuffer
         }
     }
 
@@ -229,6 +230,8 @@ class WindowsLauncher(val parent: GLRenderer) {
                 xPos        , yPos + ySize, zPos
         )
 
+        tile.colorBuffer = floatArrayOf(1.0f, 1.0f, 1.0f, 1.0f)
+
         val bb = ByteBuffer.allocateDirect(verts.size * 4)
         bb.order(ByteOrder.nativeOrder())
         tile.vertBuffer = bb.asFloatBuffer()
@@ -240,6 +243,12 @@ class WindowsLauncher(val parent: GLRenderer) {
         tile.drawListBuffer = dlb.asShortBuffer()
         tile.drawListBuffer!!.put(inds)
         tile.drawListBuffer!!.position(0)
+
+        /*val col = ByteBuffer.allocateDirect(color.size * 4)
+        bb.order(ByteOrder.nativeOrder())
+        tile.colorBuffer = col.asFloatBuffer()
+        tile.colorBuffer!!.put(color)
+        tile.colorBuffer!!.position(0)*/
     }
 
     fun cacheTileValues() {
