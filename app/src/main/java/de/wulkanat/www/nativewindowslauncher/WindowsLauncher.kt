@@ -76,36 +76,7 @@ class WindowsLauncher(val parent: GLRenderer) {
 
     val inds = shortArrayOf(0, 1, 2, 0, 2, 3)
 
-    //Native functions for Calculating Animations
-    //external fun calcACache(a: Double, b: Double, x2: Double, y2: Double): Double
-    //external fun calcBCache(a: Double, b: Double, x2: Double, y2: Double): Double
-    //external fun expAccInterpolator(precalc_a: Double, precalc_b: Double, initial_a: Double, s: Double): Double
-
-    /*var in_precalc_a = 0.0
-    var in_precalc_b = 0.0
-    var in_precalc_c = 0.0
-    var in_precalc_d = 0.0
-
-    var overscroll_precalc_a = 0.0
-    var overscroll_precalc_b = 0.0
-    var overscroll_precalc_c = 0.0
-    var overscroll_precalc_d = 0.0*/
-
     init {
-        //System.loadLibrary("native-lib")
-
-        //in_precalc_a = calcACache(fadeInNum1, fadeInNum2, fadeInLoc[0], fadeInLoc[1])
-        //in_precalc_b = calcBCache(fadeInNum1, fadeInNum2, fadeInLoc[0], fadeInLoc[1])
-
-        //in_precalc_c = calcACache(fadeInNum3, fadeInNum2, 1 - fadeInLoc[0], 1 - fadeInLoc[1])
-        //in_precalc_d = calcBCache(fadeInNum3, fadeInNum2, 1 - fadeInLoc[0], 1 - fadeInLoc[1])
-
-        //overscroll_precalc_a = calcACache(overscrollNum1, overscrollNum2, overscrollLoc[0], overscrollLoc[1])
-        //overscroll_precalc_b = calcACache(overscrollNum1, overscrollNum2, overscrollLoc[0], overscrollLoc[1])
-
-        //overscroll_precalc_c = calcACache(overscrollNum3, overscrollNum2, 1 - overscrollLoc[0], 1 - overscrollLoc[1])
-        //overscroll_precalc_d = calcACache(overscrollNum3, overscrollNum2, 1 - overscrollLoc[0], 1 - overscrollLoc[1])
-
         addTile(Tile(0, 0, 1, 1))
         addTile(Tile(1, 0, 1, 1))
         addTile(Tile(0, 1, 1, 1))
@@ -130,7 +101,6 @@ class WindowsLauncher(val parent: GLRenderer) {
         addTile(Tile(5, 9, 1, 1))
         addTile(Tile(0, 10, 2, 2))
         addTile(Tile(2, 10, 4, 2))
-
     }
 
     fun addTile(tile: Tile) {
@@ -142,46 +112,11 @@ class WindowsLauncher(val parent: GLRenderer) {
     }
 
     fun performEnterAnimation(progress: Double) {
-        /*if (progress < fadeInLoc[0]) {
-            expAccInterpolator(in_precalc_a, in_precalc_b, fadeInNum1, progress)
-        } else {
-            expAccInterpolator(in_precalc_c, in_precalc_d, fadeInNum3, progress)
-        }*/
+
     }
 
     fun update(elapsed: Double) {
-        //if (parent.fingerDown) {
-        if ((scrollDist >= overscrollDist) || (scrollDist <= gridOverscrollHeight - overscrollDist)) {parent.dyTouch = 0.0f}
-        else if ((scrollDist > 0) || (scrollDist < gridOverscrollHeight)) {
-            scrollDist -= parent.dyTouch / 6
-            if (parent.fingerDown) {
-                todoOverscrollDist = scrollDist
-                overscrollElapsed = overscrollDuration
-            }
-        } else
-            scrollDist -= parent.dyTouch
-
-        if (!parent.fingerDown) {
-            if (scrollDist > 0.0f) {
-                scrollDist = todoOverscrollDist * overscrollInterpolator.getMulti(overscrollElapsed, overscrollDuration).toFloat()
-
-                if (overscrollElapsed <= 0) {
-                    todoOverscrollDist = 0.0f
-                    scrollDist = 0.0f
-                    parent.dyTouch = 0.0f
-                } else {
-                    overscrollElapsed -= elapsed
-                }
-            } else if (scrollDist < gridOverscrollHeight) {
-
-            } else {
-                parent.dyTouch -= elapsed.toFloat() * (parent.dyTouch / 1.5f)
-                scrollDist -= parent.dyTouch
-
-                todoOverscrollDist = scrollDist
-                overscrollElapsed = overscrollDuration
-            }
-        }
+        handleTouch(elapsed)
 
         for (tile in tiles) {
             //TODO: calc in seperate Thread
@@ -194,6 +129,56 @@ class WindowsLauncher(val parent: GLRenderer) {
             //Swap buffers in tiles
             tile.renderDrawListBuffer = tile.drawListBuffer
             tile.renderVertBuffer = tile.vertBuffer
+        }
+    }
+
+    fun handleTouch(elapsed: Double) {
+        if ((scrollDist >= overscrollDist) || (scrollDist <= gridOverscrollHeight - overscrollDist)) {parent.dyTouch = 0.0f}
+        else if (scrollDist > 0) {
+            scrollDist -= parent.dyTouch / 6
+            if (parent.fingerDown) {
+                todoOverscrollDist = scrollDist
+                overscrollElapsed = overscrollDuration
+            }
+        } else if (scrollDist < gridOverscrollHeight) {
+            scrollDist -= parent.dyTouch / 6
+            if (parent.fingerDown) {
+                todoOverscrollDist = scrollDist - gridOverscrollHeight
+                overscrollElapsed = overscrollDuration
+            }
+        } else
+            scrollDist -= parent.dyTouch
+
+        if (!parent.fingerDown) {
+            if (scrollDist > 0.0f) {
+                overscrollEffect(true, elapsed)
+            } else if (scrollDist < gridOverscrollHeight) {
+                overscrollEffect(false, elapsed)
+            } else {
+                parent.dyTouch -= elapsed.toFloat() * (parent.dyTouch / 1.5f)
+                scrollDist -= parent.dyTouch
+
+                todoOverscrollDist = scrollDist
+                overscrollElapsed = overscrollDuration
+            }
+        }
+    }
+
+    fun overscrollEffect(top: Boolean, elapsed: Double) {
+        if (top)
+            scrollDist = todoOverscrollDist * overscrollInterpolator.getMulti(overscrollElapsed, overscrollDuration).toFloat()
+        else
+            scrollDist = gridOverscrollHeight + (todoOverscrollDist * overscrollInterpolator.getMulti(overscrollElapsed, overscrollDuration).toFloat())
+
+        if (overscrollElapsed <= 0) {
+            todoOverscrollDist = 0.0f
+            if (top)
+                scrollDist = 0.0f
+            else
+                scrollDist = gridOverscrollHeight
+            parent.dyTouch = 0.0f
+        } else {
+            overscrollElapsed -= elapsed
         }
     }
 
