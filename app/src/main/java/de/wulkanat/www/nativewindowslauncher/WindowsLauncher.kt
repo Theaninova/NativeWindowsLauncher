@@ -17,6 +17,11 @@ class WindowsLauncher() {
         val fadeInLoc = doubleArrayOf(0.8, 0.2)
 
 
+        val overscrollNum1 = 0.0
+        val overscrollNum2 = 3.2
+        val overscrollNum3 = 0.0
+        val overscrollLoc = doubleArrayOf(0.5, 0.5)
+
         val exitDuration = 0.36
         val targetZoom = 3.0f
         val fadeOutDist = 0.5f
@@ -29,6 +34,10 @@ class WindowsLauncher() {
         val fadeOutLoc = doubleArrayOf(0.43, 0.29)
     }
 
+    var fadeInInterpolator = AccExpInterpolator(fadeInNum1, fadeInNum2, fadeInNum3, fadeInLoc)
+    var fadeOutInterpolator = AccExpInterpolator(fadeOutNum1, fadeOutNum2, fadeOutNum3, fadeOutLoc)
+    var overscrollInterpolator = AccExpInterpolator(overscrollNum1, overscrollNum2, overscrollNum3, overscrollLoc)
+
     var tiles = ArrayList<Tile>()
 
     var gridWidth: Int = 6
@@ -38,6 +47,16 @@ class WindowsLauncher() {
     var topMargin: Float = tilesMargin
     var statusBarHeightPercentage: Float = 0.0f
     var statusBarHeight: Float = 0.0f
+    set (value) {
+        field = value
+        overscrollDist = 0.2090278f * 2 - topMargin - value
+    }
+    var overscrollDist: Float = 0.2090278f * 2 - topMargin //0,20902 / Period
+    val overscrollDuration = 0.25
+    var todoOverscrollDist = 0.0f
+    var overscrollElapsed = 0.0
+
+    var scrollDist = 0.0f
 
     var tileSizeCache = 0.0f
     var tileXPosChache = FloatArray(gridWidth)
@@ -50,12 +69,17 @@ class WindowsLauncher() {
     //Native functions for Calculating Animations
     external fun calcACache(a: Double, b: Double, x2: Double, y2: Double): Double
     external fun calcBCache(a: Double, b: Double, x2: Double, y2: Double): Double
-    external fun expAccInterpolator(precalc_a: Double, precalc_b: Double, initial_a: Double, s: Double)
+    external fun expAccInterpolator(precalc_a: Double, precalc_b: Double, initial_a: Double, s: Double): Double
 
     var in_precalc_a = 0.0
     var in_precalc_b = 0.0
     var in_precalc_c = 0.0
     var in_precalc_d = 0.0
+
+    var overscroll_precalc_a = 0.0
+    var overscroll_precalc_b = 0.0
+    var overscroll_precalc_c = 0.0
+    var overscroll_precalc_d = 0.0
 
     // Used to load the 'native-lib' library on application startup.
     init {
@@ -66,6 +90,12 @@ class WindowsLauncher() {
 
         in_precalc_c = calcACache(fadeInNum3, fadeInNum2, 1 - fadeInLoc[0], 1 - fadeInLoc[1])
         in_precalc_d = calcBCache(fadeInNum3, fadeInNum2, 1 - fadeInLoc[0], 1 - fadeInLoc[1])
+
+        overscroll_precalc_a = calcACache(overscrollNum1, overscrollNum2, overscrollLoc[0], overscrollLoc[1])
+        overscroll_precalc_b = calcACache(overscrollNum1, overscrollNum2, overscrollLoc[0], overscrollLoc[1])
+
+        overscroll_precalc_c = calcACache(overscrollNum3, overscrollNum2, 1 - overscrollLoc[0], 1 - overscrollLoc[1])
+        overscroll_precalc_d = calcACache(overscrollNum3, overscrollNum2, 1 - overscrollLoc[0], 1 - overscrollLoc[1])
 
         tiles.add(Tile(0, 0, 1, 1))
         tiles.add(Tile(1, 0, 1, 1))
@@ -102,7 +132,28 @@ class WindowsLauncher() {
         }
     }
 
-    fun update(elapsed: Double) {
+    fun update(elapsed: Double, dxTouch: Float, dyTouch: Float) {
+        if (scrollDist >= overscrollDist && dyTouch < 0) {
+
+        } else if (scrollDist > 0.0f && dyTouch == 0.0f) {
+            if (todoOverscrollDist == 0.0f) {
+                todoOverscrollDist = scrollDist
+                overscrollElapsed = overscrollDuration
+            }
+
+            scrollDist = todoOverscrollDist * overscrollInterpolator.getMulti(overscrollElapsed, overscrollDuration).toFloat()
+
+            if (overscrollElapsed <= 0) {
+                todoOverscrollDist = 0.0f
+                scrollDist = 0.0f
+            } else {
+                overscrollElapsed -= elapsed
+            }
+        } else if (scrollDist > 0 && dyTouch < 0)
+            scrollDist -= dyTouch / 6
+        else
+            scrollDist -= dyTouch
+
         for (tile in tiles) {
             //TODO: calc in seperate Thread
             calculateTile(tile, 1.0f)
@@ -118,8 +169,7 @@ class WindowsLauncher() {
     }
 
     fun calculateTile(tile: Tile, zoom: Float) {
-        val yOffset = 0.0f
-        val yPos = (glGrid[2] + topMargin + tile.posY.toFloat() * tileAndMarginCache + yOffset + statusBarHeight) * zoom
+        val yPos = (glGrid[2] + topMargin + tile.posY.toFloat() * tileAndMarginCache + scrollDist + statusBarHeight) * zoom
         val xPos = tileXPosChache[tile.posX] * zoom
         val xSize = (tileSizeCache + (tile.spanX - 1).toFloat() * tileAndMarginCache) * zoom
         val ySize = (tileSizeCache + (tile.spanY - 1).toFloat() * tileAndMarginCache) * zoom
