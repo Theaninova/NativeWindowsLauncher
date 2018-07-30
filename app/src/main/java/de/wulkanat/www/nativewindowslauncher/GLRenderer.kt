@@ -14,6 +14,9 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
 
     var dxTouch: Float = 0.0f
     var dyTouch: Float = 0.0f
+    //glGrid units per second per second
+    var xVelocityTouch: Float = 0.0f
+    var yVelocityTouch: Float = 0.0f
     var fingerDown = false
 
     var glGrid = floatArrayOf(-1.0f, 1.0f, 1.0f, -1.0f)

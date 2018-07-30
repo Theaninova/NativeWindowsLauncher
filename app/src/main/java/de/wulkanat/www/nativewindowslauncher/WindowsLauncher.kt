@@ -101,6 +101,20 @@ class WindowsLauncher(val parent: GLRenderer) {
         addTile(Tile(5, 9, 1, 1))
         addTile(Tile(0, 10, 2, 2))
         addTile(Tile(2, 10, 4, 2))
+        addTile(Tile(0, 12, 1, 1))
+        addTile(Tile(1, 12, 1, 1))
+        addTile(Tile(2, 12, 2, 2))
+        addTile(Tile(4, 12, 2, 2))
+        addTile(Tile(0, 13, 2, 2))
+        addTile(Tile(0, 15, 1, 1))
+        addTile(Tile(1, 15, 1, 1))
+        addTile(Tile(2, 14, 2, 2))
+        addTile(Tile(4, 14, 1, 1))
+        addTile(Tile(5, 14, 1, 1))
+        addTile(Tile(4, 15, 1, 1))
+        addTile(Tile(5, 15, 1, 1))
+        addTile(Tile(0, 16, 2, 2))
+        addTile(Tile(2, 16, 4, 2))
     }
 
     fun addTile(tile: Tile) {
@@ -112,7 +126,7 @@ class WindowsLauncher(val parent: GLRenderer) {
     }
 
     fun performEnterAnimation(progress: Double) {
-
+        TODO("Not implemented")
     }
 
     fun update(elapsed: Double) {
@@ -133,34 +147,50 @@ class WindowsLauncher(val parent: GLRenderer) {
     }
 
     fun handleTouch(elapsed: Double) {
-        if ((scrollDist >= overscrollDist) || (scrollDist <= gridOverscrollHeight - overscrollDist)) {parent.dyTouch = 0.0f}
-        else if (scrollDist > 0) {
-            scrollDist -= parent.dyTouch / 6
+        if ((scrollDist >= overscrollDist) || (scrollDist <= gridOverscrollHeight - overscrollDist)) {
+            parent.yVelocityTouch = 0.0f
+            parent.dyTouch = 0.0f
+        } else if (scrollDist > 0) {
+            scroll(elapsed, 6.0f)
             if (parent.fingerDown) {
                 todoOverscrollDist = scrollDist
                 overscrollElapsed = overscrollDuration
             }
         } else if (scrollDist < gridOverscrollHeight) {
-            scrollDist -= parent.dyTouch / 6
+            scroll(elapsed, 6.0f)
             if (parent.fingerDown) {
                 todoOverscrollDist = scrollDist - gridOverscrollHeight
                 overscrollElapsed = overscrollDuration
             }
-        } else
-            scrollDist -= parent.dyTouch
+        } else {
+            scroll(elapsed, 1.0f)
+        }
 
         if (!parent.fingerDown) {
-            if (scrollDist > 0.0f) {
+            if (scrollDist > 0.0f && parent.yVelocityTouch > -1.0) {
                 overscrollEffect(true, elapsed)
-            } else if (scrollDist < gridOverscrollHeight) {
+            } else if (scrollDist < gridOverscrollHeight && parent.yVelocityTouch < 1.0) {
                 overscrollEffect(false, elapsed)
             } else {
-                parent.dyTouch -= elapsed.toFloat() * (parent.dyTouch / 1.5f)
-                scrollDist -= parent.dyTouch
+                if (scrollDist > 0 || scrollDist < gridOverscrollHeight)
+                    parent.yVelocityTouch -= elapsed.toFloat() * (parent.yVelocityTouch / 0.04f)
+                else
+                    parent.yVelocityTouch -= elapsed.toFloat() * (parent.yVelocityTouch / 0.4f)
 
-                todoOverscrollDist = scrollDist
+                if (scrollDist > gridOverscrollHeight / 2)
+                    todoOverscrollDist = scrollDist
+                else
+                    todoOverscrollDist = scrollDist - gridOverscrollHeight
                 overscrollElapsed = overscrollDuration
             }
+        }
+    }
+
+    fun scroll(elapsed: Double, divideBy: Float) {
+        if (parent.fingerDown) {
+            scrollDist -= parent.dyTouch / divideBy
+        } else {
+            scrollDist -= (parent.yVelocityTouch / divideBy) * elapsed.toFloat()
         }
     }
 
@@ -176,7 +206,7 @@ class WindowsLauncher(val parent: GLRenderer) {
                 scrollDist = 0.0f
             else
                 scrollDist = gridOverscrollHeight
-            parent.dyTouch = 0.0f
+            parent.yVelocityTouch = 0.0f
         } else {
             overscrollElapsed -= elapsed
         }
