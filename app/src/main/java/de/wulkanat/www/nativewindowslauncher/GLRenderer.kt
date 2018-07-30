@@ -4,8 +4,6 @@ import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -18,6 +16,7 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int) : GLSurfaceV
 
     val COORDS_PER_VERTEX = 3
     val vertexStride = COORDS_PER_VERTEX * 4
+    val inds = shortArrayOf(0, 1, 2, 0, 2, 3)
 
     var mScreenWidth: Float = 1080f
     var mScreenHeight: Float = 1920f
@@ -42,11 +41,10 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int) : GLSurfaceV
 
     override fun onDrawFrame(p0: GL10?) {
         val now = System.currentTimeMillis()
-
         if (now == mLastTime) return
-
         val elapsed = now - mLastTime
 
+        windowsLauncher.update(0.0) //TODO:
 
         render(mtrxProjectionAndView)
 
@@ -56,14 +54,18 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int) : GLSurfaceV
     private fun render(m: FloatArray) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 
-        drawTile(arrayOf(intArrayOf(0, 0), intArrayOf(1, 1)), 1.0f, 1.0f, m)
+        for (tile in windowsLauncher.tiles) {
+            drawTile(tile, m)
+        }
+
+        /*drawTile(arrayOf(intArrayOf(0, 0), intArrayOf(1, 1)), 1.0f, 1.0f, m)
         drawTile(arrayOf(intArrayOf(1, 0), intArrayOf(1, 1)), 1.0f, 1.0f, m)
         drawTile(arrayOf(intArrayOf(0, 1), intArrayOf(1, 1)), 1.0f, 1.0f, m)
         drawTile(arrayOf(intArrayOf(1, 1), intArrayOf(1, 1)), 1.0f, 1.0f, m)
         drawTile(arrayOf(intArrayOf(2, 0), intArrayOf(2, 2)), 1.0f, 1.0f, m)
         drawTile(arrayOf(intArrayOf(4, 0), intArrayOf(2, 2)), 1.0f, 1.0f, m)
         drawTile(arrayOf(intArrayOf(0, 2), intArrayOf(2, 2)), 1.0f, 1.0f, m)
-        drawTile(arrayOf(intArrayOf(2, 2), intArrayOf(4, 2)), 1.0f, 1.0f, m)
+        drawTile(arrayOf(intArrayOf(2, 2), intArrayOf(4, 2)), 1.0f, 1.0f, m)*/
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
@@ -110,7 +112,18 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int) : GLSurfaceV
         GLES20.glUseProgram(RiGraphicTools.sp_SolidColor)
     }
 
-    fun drawTile(tile: Array<IntArray>, zoom: Float, alpha: Float, m: FloatArray) {
+    fun drawTile(tile: Tile, m: FloatArray) {
+        val mPositionHandle = GLES20.glGetAttribLocation(RiGraphicTools.sp_SolidColor, "vPosition")
+        GLES20.glEnableVertexAttribArray(mPositionHandle)
+        GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, tile.renderVertBuffer)
+
+        val mtrxhandle = GLES20.glGetUniformLocation(RiGraphicTools.sp_SolidColor, "uMVPMatrix")
+        GLES20.glUniformMatrix4fv(mtrxhandle, 1, false, m, 0)
+        GLES20.glDrawElements(GLES20.GL_TRIANGLES, inds.size, GLES20.GL_UNSIGNED_SHORT, tile.renderDrawListBuffer)
+        GLES20.glDisableVertexAttribArray(mPositionHandle)
+    }
+
+    /*fun drawTile(tile: Array<IntArray>, zoom: Float, alpha: Float, m: FloatArray) {
         val yOffset = 0.0f
         val yPos = (glGrid[2] + windowsLauncher.topMargin + tile[0][1] * windowsLauncher.tileAndMarginCache + yOffset + windowsLauncher.statusBarHeight) * zoom
         val xPos = windowsLauncher.tileXPosChache[tile[0][0]] * zoom
@@ -127,10 +140,6 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int) : GLSurfaceV
                 xPos + xSize, yPos + ySize, zPos,
                 xPos        , yPos + ySize, zPos
         )
-
-
-
-        val inds = shortArrayOf(0, 1, 2, 0, 2, 3)
 
         val bb = ByteBuffer.allocateDirect(verts.size * 4)
         bb.order(ByteOrder.nativeOrder())
@@ -152,5 +161,5 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int) : GLSurfaceV
         GLES20.glUniformMatrix4fv(mtrxhandle, 1, false, m, 0)
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, inds.size, GLES20.GL_UNSIGNED_SHORT, drawListBuffer)
         GLES20.glDisableVertexAttribArray(mPositionHandle)
-    }
+    }*/
 }

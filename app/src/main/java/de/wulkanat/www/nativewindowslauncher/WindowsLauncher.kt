@@ -1,5 +1,8 @@
 package de.wulkanat.www.nativewindowslauncher
 
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+
 class WindowsLauncher() {
     companion object {
         val enterDuration = 0.5
@@ -42,6 +45,8 @@ class WindowsLauncher() {
 
     var glGrid: FloatArray = FloatArray(4)
 
+    val inds = shortArrayOf(0, 1, 2, 0, 2, 3)
+
     //Native functions for Calculating Animations
     external fun calcACache(a: Double, b: Double, x2: Double, y2: Double): Double
     external fun calcBCache(a: Double, b: Double, x2: Double, y2: Double): Double
@@ -52,8 +57,6 @@ class WindowsLauncher() {
     var in_precalc_c = 0.0
     var in_precalc_d = 0.0
 
-    var A: Double = calcACache(fadeInNum1, fadeInNum2, fadeInLoc[0], fadeInLoc[1])
-
     // Used to load the 'native-lib' library on application startup.
     init {
         System.loadLibrary("native-lib")
@@ -63,6 +66,32 @@ class WindowsLauncher() {
 
         in_precalc_c = calcACache(fadeInNum3, fadeInNum2, 1 - fadeInLoc[0], 1 - fadeInLoc[1])
         in_precalc_d = calcBCache(fadeInNum3, fadeInNum2, 1 - fadeInLoc[0], 1 - fadeInLoc[1])
+
+        tiles.add(Tile(0, 0, 1, 1))
+        tiles.add(Tile(1, 0, 1, 1))
+        tiles.add(Tile(0, 1, 1, 1))
+        tiles.add(Tile(1, 1, 1, 1))
+        tiles.add(Tile(2, 0, 2, 2))
+        tiles.add(Tile(4, 0, 2, 2))
+        tiles.add(Tile(0, 2, 2, 2))
+        tiles.add(Tile(2, 2, 4, 2))
+        tiles.add(Tile(0, 4, 2, 2))
+        tiles.add(Tile(2, 4, 1, 1))
+        tiles.add(Tile(3, 4, 1, 1))
+        tiles.add(Tile(2, 5, 1, 1))
+        tiles.add(Tile(3, 5, 1, 1))
+        tiles.add(Tile(4, 4, 2, 2))
+        tiles.add(Tile(0, 6, 4, 2))
+        tiles.add(Tile(4, 6, 2, 2))
+        tiles.add(Tile(0, 8, 2, 2))
+        tiles.add(Tile(2, 8, 2, 2))
+        tiles.add(Tile(4, 8, 1, 1))
+        tiles.add(Tile(5, 8, 1, 1))
+        tiles.add(Tile(4, 9, 1, 1))
+        tiles.add(Tile(5, 9, 1, 1))
+        tiles.add(Tile(0, 10, 2, 2))
+        tiles.add(Tile(2, 10, 4, 2))
+
     }
 
     fun performEnterAnimation(progress: Double) {
@@ -71,6 +100,52 @@ class WindowsLauncher() {
         } else {
             expAccInterpolator(in_precalc_c, in_precalc_d, fadeInNum3, progress)
         }
+    }
+
+    fun update(elapsed: Double) {
+        for (tile in tiles) {
+            //TODO: calc in seperate Thread
+            calculateTile(tile, 1.0f)
+        }
+
+        //TODO: multithreading, check for GPU finished
+
+        for (tile in tiles) {
+            //Swap buffers in tiles
+            tile.renderDrawListBuffer = tile.drawListBuffer
+            tile.renderVertBuffer = tile.vertBuffer
+        }
+    }
+
+    fun calculateTile(tile: Tile, zoom: Float) {
+        val yOffset = 0.0f
+        val yPos = (glGrid[2] + topMargin + tile.posY.toFloat() * tileAndMarginCache + yOffset + statusBarHeight) * zoom
+        val xPos = tileXPosChache[tile.posX] * zoom
+        val xSize = (tileSizeCache + (tile.spanX - 1).toFloat() * tileAndMarginCache) * zoom
+        val ySize = (tileSizeCache + (tile.spanY - 1).toFloat() * tileAndMarginCache) * zoom
+
+        val zPos = 1 - 1 / zoom
+        if (zoom < 0)
+            zPos -(1 - zoom)
+
+        val verts = floatArrayOf(
+                xPos        , yPos        , zPos,
+                xPos + xSize, yPos        , zPos,
+                xPos + xSize, yPos + ySize, zPos,
+                xPos        , yPos + ySize, zPos
+        )
+
+        val bb = ByteBuffer.allocateDirect(verts.size * 4)
+        bb.order(ByteOrder.nativeOrder())
+        tile.vertBuffer = bb.asFloatBuffer()
+        tile.vertBuffer!!.put(verts)
+        tile.vertBuffer!!.position(0)
+
+        val dlb = ByteBuffer.allocateDirect(inds.size * 2)
+        dlb.order(ByteOrder.nativeOrder())
+        tile.drawListBuffer = dlb.asShortBuffer()
+        tile.drawListBuffer!!.put(inds)
+        tile.drawListBuffer!!.position(0)
     }
 
     fun cacheTileValues() {
