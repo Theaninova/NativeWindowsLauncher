@@ -45,14 +45,33 @@ class WindowsLauncher() {
     //Native functions for Calculating Animations
     external fun calcACache(a: Double, b: Double, x2: Double, y2: Double): Double
     external fun calcBCache(a: Double, b: Double, x2: Double, y2: Double): Double
+    external fun expAccInterpolator(precalc_a: Double, precalc_b: Double, initial_a: Double, s: Double)
+
+    var in_precalc_a = 0.0
+    var in_precalc_b = 0.0
+    var in_precalc_c = 0.0
+    var in_precalc_d = 0.0
 
     var A: Double = calcACache(fadeInNum1, fadeInNum2, fadeInLoc[0], fadeInLoc[1])
 
     // Used to load the 'native-lib' library on application startup.
     init {
         System.loadLibrary("native-lib")
+
+        in_precalc_a = calcACache(fadeInNum1, fadeInNum2, fadeInLoc[0], fadeInLoc[1])
+        in_precalc_b = calcBCache(fadeInNum1, fadeInNum2, fadeInLoc[0], fadeInLoc[1])
+
+        in_precalc_c = calcACache(fadeInNum3, fadeInNum2, 1 - fadeInLoc[0], 1 - fadeInLoc[1])
+        in_precalc_d = calcBCache(fadeInNum3, fadeInNum2, 1 - fadeInLoc[0], 1 - fadeInLoc[1])
     }
 
+    fun performEnterAnimation(progress: Double) {
+        if (progress < fadeInLoc[0]) {
+            expAccInterpolator(in_precalc_a, in_precalc_b, fadeInNum1, progress)
+        } else {
+            expAccInterpolator(in_precalc_c, in_precalc_d, fadeInNum3, progress)
+        }
+    }
 
     fun cacheTileValues() {
         tileSizeCache = ((glGrid[1] - glGrid[0]) - leftSideMargin - rightSideMargin - (gridWidth - 1) * tilesMargin) / gridWidth
