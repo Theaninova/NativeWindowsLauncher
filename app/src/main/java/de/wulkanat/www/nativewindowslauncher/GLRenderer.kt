@@ -128,6 +128,8 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int) : GLSurfaceV
                 xPos        , yPos + ySize, zPos
         )
 
+
+
         val inds = shortArrayOf(0, 1, 2, 0, 2, 3)
 
         val bb = ByteBuffer.allocateDirect(verts.size * 4)
