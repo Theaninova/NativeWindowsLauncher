@@ -7,7 +7,7 @@ import java.nio.ByteOrder
 class WindowsLauncher(val parent: GLRenderer) {
     companion object {
         //TODO: Official animation only makes use of Six rows, all after that are being treated as one row.
-        val enterDuration = 0.6 //0.6
+        val enterDuration = 0.62 //0.6
         //val enterRowZoomDifference = 2.0f
         //val enterRowZoomOffset = 0.01
         val relativeEnterRowZoomOffsets = floatArrayOf(0.01f, //0.01
@@ -43,7 +43,12 @@ class WindowsLauncher(val parent: GLRenderer) {
 
         val inds = shortArrayOf(0, 1, 2, 0, 2, 3)
 
-        val longTapDuraion = 1.5
+        val longTapDuraion = 0.75
+
+        val editModeZoom = -0.1f
+        val editModeSelectedZoom = -0.05f
+        val editModeAlpha = 0.8f
+        val editModeSelectedAlpha = 1.0f
     }
 
     var fadeInInterpolator = AccExpInterpolator(fadeInNum1, fadeInNum2, fadeInNum3, fadeInLoc)
@@ -161,6 +166,7 @@ class WindowsLauncher(val parent: GLRenderer) {
         animProgress = enterDuration
         entering = true
         exiting = false
+        scrollDist = 0.0f
 
         enterTemporalOffsets = doubleArrayOf(0.0, enterDuration, enterDuration, enterDuration, enterDuration, enterDuration, enterDuration)
 
@@ -406,11 +412,11 @@ class WindowsLauncher(val parent: GLRenderer) {
 
         var additionalZoom = 0.0f
         if (editMode) {
-            additionalZoom = -0.1f
-            tiles[tile].colorBuffer!![3] = 0.8f
+            additionalZoom = editModeZoom
+            tiles[tile].colorBuffer!![3] = editModeAlpha
             if (tile == editModeSelectedTile) {
-                additionalZoom = -0.05f
-                tiles[tile].colorBuffer!![3] = 1.0f
+                additionalZoom = editModeSelectedZoom
+                tiles[tile].colorBuffer!![3] = editModeSelectedAlpha
             }
         }
 

@@ -12,4 +12,6 @@ class Tile(var posX: Int, var posY: Int, var spanX: Int, var spanY: Int) {
     var renderVertBuffer: FloatBuffer? = null
     var renderDrawListBuffer: ShortBuffer? = null
     var renderColorBuffer: FloatArray? = null
+
+    var currentZoom = 0.0f
 }
