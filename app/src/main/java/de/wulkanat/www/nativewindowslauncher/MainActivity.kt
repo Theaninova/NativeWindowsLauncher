@@ -24,6 +24,10 @@ class MainActivity : AppCompatActivity() {
         mainLayout.addView(glSurfaceView, glParams)
     }
 
+    override fun onBackPressed() {
+        glSurfaceView.mRenderer.windowsLauncher.editMode = false
+    }
+
     fun getStatusBarHeightPixles(): Int {
         var result = 0
         val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")

@@ -106,6 +106,7 @@ class WindowsLauncher(val parent: GLRenderer) {
 
     var appDrawer = false
     var editMode = false
+    var editModeSelectedTile = 0
 
     init {
         addTile(Tile(0, 0, 1, 1))
@@ -211,8 +212,8 @@ class WindowsLauncher(val parent: GLRenderer) {
             }
         }
 
-        for (tile in tiles) {
-            var tileOffset = (startTileIndex) - (tile.posY + tile.spanY)
+        for (tile in tiles.indices) {
+            var tileOffset = (startTileIndex) - (tiles[tile].posY + tiles[tile].spanY)
             if (tileOffset < 0)
                 tileOffset = 0
             else if (tileOffset >= enterTemporalOffsets.size)
@@ -223,11 +224,11 @@ class WindowsLauncher(val parent: GLRenderer) {
     }
 
     fun performExitAnimation(progress: Double) {
-        for (tile in tiles) {
-            if (tile.posY >= exitStartPos) {
-                var tileTime = 2 * (exitDuration - progress - (tile.posY.toFloat() - exitStartPos) * exitAnimTime)
+        for (tile in tiles.indices) {
+            if (tiles[tile].posY >= exitStartPos) {
+                var tileTime = 2 * (exitDuration - progress - (tiles[tile].posY.toFloat() - exitStartPos) * exitAnimTime)
 
-                if (tile.posX == exitTapTileLoc[0] && tile.posY == exitTapTileLoc[1]) {
+                if (tiles[tile].posX == exitTapTileLoc[0] && tiles[tile].posY == exitTapTileLoc[1]) {
                     tileTime -= appTileOffset * exitAnimTime;
                 }
 
@@ -255,7 +256,7 @@ class WindowsLauncher(val parent: GLRenderer) {
                 initEnterAnimation()
                 performNewEnterAnimation(animProgress)
             } else {
-                for (tile in tiles) {
+                for (tile in tiles.indices) {
                     //TODO: calc in seperate Thread
                     calculateTile(tile, 1.0f, floatArrayOf(0.24313f, 0.396078f, 1.0f, 1.0f))
                 }
@@ -301,10 +302,19 @@ class WindowsLauncher(val parent: GLRenderer) {
     }
 
     fun onTapEvent(longTap: Boolean) {
-        for (tile in tiles) {
-            if (tileTouched(tile)) {
-                //TODO: handle touch
-                initExitAnimation(intArrayOf(tile.posX, tile.posY))
+        for (tile in tiles.indices) {
+            if (tileTouched(tiles[tile])) {
+                if (longTap) {
+                    editMode = true
+                    editModeSelectedTile = tile
+                } else {
+                    if (editMode)
+                        editModeSelectedTile = tile
+                    else
+                        initExitAnimation(intArrayOf(tiles[tile].posX, tiles[tile].posY))
+                }
+
+                break
             }
         }
     }
@@ -391,11 +401,25 @@ class WindowsLauncher(val parent: GLRenderer) {
         }
     }
 
-    fun calculateTile(tile: Tile, zoom: Float, color: FloatArray) {
-        val yPos = (glGrid[2] + topMargin + tile.posY.toFloat() * tileAndMarginCache + scrollDist + statusBarHeight) * zoom
-        val xPos = tileXPosChache[tile.posX] * zoom
-        val xSize = (tileSizeCache + (tile.spanX - 1).toFloat() * tileAndMarginCache) * zoom
-        val ySize = (tileSizeCache + (tile.spanY - 1).toFloat() * tileAndMarginCache) * zoom
+    fun calculateTile(tile: Int, origZoom: Float, color: FloatArray) {
+        tiles[tile].colorBuffer = color
+
+        var additionalZoom = 0.0f
+        if (editMode) {
+            additionalZoom = -0.1f
+            tiles[tile].colorBuffer!![3] = 0.8f
+            if (tile == editModeSelectedTile) {
+                additionalZoom = -0.05f
+                tiles[tile].colorBuffer!![3] = 1.0f
+            }
+        }
+
+        val zoom = origZoom + additionalZoom
+
+        val yPos = (glGrid[2] + topMargin + tiles[tile].posY.toFloat() * tileAndMarginCache + scrollDist + statusBarHeight) * zoom
+        val xPos = tileXPosChache[tiles[tile].posX] * zoom
+        val xSize = (tileSizeCache + (tiles[tile].spanX - 1).toFloat() * tileAndMarginCache) * zoom
+        val ySize = (tileSizeCache + (tiles[tile].spanY - 1).toFloat() * tileAndMarginCache) * zoom
 
         var zPos = 0.5f + ((1f / zoom) / 2f)
         if (zoom < 1f)
@@ -408,19 +432,17 @@ class WindowsLauncher(val parent: GLRenderer) {
                 xPos        , yPos + ySize, zPos
         )
 
-        tile.colorBuffer = color
-
         val bb = ByteBuffer.allocateDirect(verts.size * 4)
         bb.order(ByteOrder.nativeOrder())
-        tile.vertBuffer = bb.asFloatBuffer()
-        tile.vertBuffer!!.put(verts)
-        tile.vertBuffer!!.position(0)
+        tiles[tile].vertBuffer = bb.asFloatBuffer()
+        tiles[tile].vertBuffer!!.put(verts)
+        tiles[tile].vertBuffer!!.position(0)
 
         val dlb = ByteBuffer.allocateDirect(inds.size * 2)
         dlb.order(ByteOrder.nativeOrder())
-        tile.drawListBuffer = dlb.asShortBuffer()
-        tile.drawListBuffer!!.put(inds)
-        tile.drawListBuffer!!.position(0)
+        tiles[tile].drawListBuffer = dlb.asShortBuffer()
+        tiles[tile].drawListBuffer!!.put(inds)
+        tiles[tile].drawListBuffer!!.position(0)
     }
 
     fun cacheTileValues() {
