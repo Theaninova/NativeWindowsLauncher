@@ -48,7 +48,7 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
 
     fun onResume() {
         mLastTime = System.currentTimeMillis()
-        windowsLauncher.initEnterAnimation()
+        //windowsLauncher.initEnterAnimation()
     }
 
     override fun onDrawFrame(p0: GL10?) {

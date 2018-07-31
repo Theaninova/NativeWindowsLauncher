@@ -6,16 +6,23 @@ import java.nio.ByteOrder
 
 class WindowsLauncher(val parent: GLRenderer) {
     companion object {
-        val enterDuration = 0.5
-        val enterRowZoomDifference = 0.075f
-        val initalZoom = 0.6f
+        //TODO: Official animation only makes use of Six rows, all after that are being treated as one row.
+        val enterDuration = 0.4
+        val enterRowZoomDifference = 2.0f
+        val enterRowZoomOffset = 0.01
+        val relativeEnterRowZoomOffsets = floatArrayOf(0.01f,
+                0.03f, 0.01f,
+                0.03f, 0.01f,
+                0.03f, 0.01f)
+                //0.021f, 0.01f)
+        val initalZoom = 0.815f
         val fadeInEnd = 0.00f
-        val fadeInStart = 0.15f
+        val fadeInStart = 0.185f
 
         val fadeInNum1 = 0.0
         val fadeInNum2 = 0.3
-        val fadeInNum3 = 3.4
-        val fadeInLoc = doubleArrayOf(0.5, 0.1)
+        val fadeInNum3 = 5.0
+        val fadeInLoc = doubleArrayOf(0.5, 0.05)
 
 
         val overscrollNum1 = 0.0
@@ -24,7 +31,7 @@ class WindowsLauncher(val parent: GLRenderer) {
         val overscrollLoc = doubleArrayOf(0.71, 0.25)
 
         val exitDuration = 0.36
-        val targetZoom = 3.0f
+        val targetZoom = 1.5f
         val fadeOutEnd = 0.5f
         val fadeOutStart = 0.15f
 
@@ -80,15 +87,19 @@ class WindowsLauncher(val parent: GLRenderer) {
     var startTileIndex = 0
     var rowsOnScreen = 0.0f
     var animProgress = 0.0
+    var enterTemporalOffsets = DoubleArray(relativeEnterRowZoomOffsets.size)
+    //var absoluteEnterRowZoomOffsets = FloatArray(relativeEnterRowZoomOffsets.size)
+    var fadeInInterpolators = ArrayList<AccExpInterpolator>()
 
     var exiting = false
     var entering = false
 
-    val tapTolerance = 0.05f
+    val tapTolerance = 0.005f
     var tapPosition  = FloatArray(2)
     var tapInitiated = false
     var timeSinceTap = 0.0
 
+    var exitStartPos = 0.0f
     var exitAnimTime = 0.0
     var exitTapTileLoc = IntArray(2)
 
@@ -146,8 +157,21 @@ class WindowsLauncher(val parent: GLRenderer) {
         entering = true
         exiting = false
 
-        rowsOnScreen = (glGrid[3] - glGrid[2]) / tileAndMarginCache
-        startTileIndex = ((((glGrid[3] - glGrid[2]) - statusBarHeight - topMargin + scrollDist)) / tileAndMarginCache).toInt()
+        enterTemporalOffsets = doubleArrayOf(0.0, enterDuration, enterDuration, enterDuration, enterDuration, enterDuration, enterDuration)
+
+        fadeInInterpolators.clear()
+        for (i in 0..(relativeEnterRowZoomOffsets.size - 1)) {
+
+        }
+
+        /*var x = relativeEnterRowZoomOffsets[0]
+        for (i in 1..(relativeEnterRowZoomOffsets.size - 1)) {
+            x += relativeEnterRowZoomOffsets[i]
+            absoluteEnterRowZoomOffsets[i] = x
+        }*/
+
+        rowsOnScreen = Math.abs(glGrid[3] - glGrid[2]) / tileAndMarginCache
+        startTileIndex = (((Math.abs(glGrid[3] - glGrid[2]) - statusBarHeight - topMargin + scrollDist)) / tileAndMarginCache).toInt()
     }
 
     fun initExitAnimation(location: IntArray) {
@@ -157,8 +181,15 @@ class WindowsLauncher(val parent: GLRenderer) {
 
         exitTapTileLoc = location
 
-        rowsOnScreen = (glGrid[3] - glGrid[2]) / tileAndMarginCache
-        exitAnimTime = exitDuration / (2.0 * rowsOnScreen)
+        rowsOnScreen = Math.abs(glGrid[3] - glGrid[2]) / tileAndMarginCache
+
+        val x = (exitStartPos + location[1].toFloat() + appTileOffset) - rowsOnScreen
+        if (x > 0) {
+            rowsOnScreen += 2 * x
+        }
+
+        exitAnimTime = (exitDuration / 2) / rowsOnScreen
+        exitStartPos = scrollDist / tileAndMarginCache
     }
 
     fun performEnterAnimation(progress: Double) {
@@ -177,26 +208,60 @@ class WindowsLauncher(val parent: GLRenderer) {
         }
     }
 
+    fun performNewEnterAnimation(progress: Double) {
+        val zoomCache = FloatArray(enterTemporalOffsets.size)
+        val alphaCache = FloatArray(enterTemporalOffsets.size)
+
+        for (i in 0..(enterTemporalOffsets.size - 1)) {
+            if (progress <= enterDuration - enterTemporalOffsets[i])
+                zoomCache[i] = 1f - (fadeInInterpolator.getMulti(progress, enterDuration - enterTemporalOffsets[i]).toFloat() * (1f - initalZoom))
+
+            if (i + 1 < enterTemporalOffsets.size && enterTemporalOffsets[i + 1] == enterDuration &&
+                    zoomCache[i] >= initalZoom + relativeEnterRowZoomOffsets[i]/*(i.toFloat() + 1.0f) * enterRowZoomOffset*/) {
+                enterTemporalOffsets[i + 1] = enterDuration - progress
+            }
+
+            alphaCache[i] = (zoomCache[i] - (1f - fadeInStart)) / ((1f - fadeInEnd) - (1f - fadeInStart))
+            if (zoomCache[i] > 1f - fadeInEnd) {
+                alphaCache[i] = 1f
+            } else if (zoomCache[i] < 1f - fadeInStart) {
+                alphaCache[i] = 0f
+            }
+        }
+
+        for (tile in tiles) {
+            var tileOffset = (startTileIndex) - (tile.posY + tile.spanY)
+            if (tileOffset < 0)
+                tileOffset = 0
+            else if (tileOffset >= enterTemporalOffsets.size)
+                tileOffset = enterTemporalOffsets.size - 1
+
+            calculateTile(tile, zoomCache[tileOffset], floatArrayOf(0.24313f, 0.396078f, 1.0f, alphaCache[tileOffset]))
+        }
+    }
+
     fun performExitAnimation(progress: Double) {
         for (tile in tiles) {
-            var tileTime = exitDuration - progress - tile.posY * exitAnimTime
+            if (tile.posY >= exitStartPos) {
+                var tileTime = 2 * (exitDuration - progress - (tile.posY.toFloat() - exitStartPos) * exitAnimTime)
 
-            if (tile.posX == exitTapTileLoc[0] && tile.posY == exitTapTileLoc[1]) {
-                tileTime -= appTileOffset;
+                if (tile.posX == exitTapTileLoc[0] && tile.posY == exitTapTileLoc[1]) {
+                    tileTime -= appTileOffset * exitAnimTime;
+                }
+
+                var newZoom = 1f
+                if (tileTime > 0.0)
+                    newZoom = 1f + fadeOutInterpolator.getMulti(tileTime, exitDuration).toFloat() * (targetZoom - 1f)
+
+                var alpha = 1f - (newZoom - (1f + fadeOutStart)) / ((fadeOutEnd + 1f) - (fadeOutStart + 1f))
+                if (newZoom > 1f + fadeOutEnd) {
+                    alpha = 0f
+                } else if (newZoom < 1 + fadeOutStart) {
+                    alpha = 1f
+                }
+
+                calculateTile(tile, newZoom, floatArrayOf(0.24313f, 0.396078f, 1.0f, alpha))
             }
-
-            var newZoom = 1f
-            if (tileTime > 0.0)
-                newZoom = 1f + fadeOutInterpolator.getMulti(tileTime, exitDuration).toFloat() * (targetZoom - 1f)
-
-            var alpha = 1f - (newZoom - (1f + fadeOutStart)) / ((fadeOutEnd + 1f) - (fadeOutStart + 1f))
-            if (newZoom > 1f + fadeOutEnd) {
-                alpha = 0f
-            } else if (newZoom < 1 + fadeOutStart) {
-                alpha = 1f
-            }
-
-            calculateTile(tile, newZoom, floatArrayOf(0.24313f, 0.396078f, 1.0f, alpha))
         }
     }
 
@@ -204,13 +269,18 @@ class WindowsLauncher(val parent: GLRenderer) {
         handleTouch(elapsed)
 
         if (animProgress <= 0.0) {
-            for (tile in tiles) {
-                //TODO: calc in seperate Thread
-                calculateTile(tile, 1.0f, floatArrayOf(0.24313f, 0.396078f, 1.0f, 1.0f))
+            if (exiting) {
+                initEnterAnimation()
+                performEnterAnimation(animProgress)
+            } else {
+                for (tile in tiles) {
+                    //TODO: calc in seperate Thread
+                    calculateTile(tile, 1.0f, floatArrayOf(0.24313f, 0.396078f, 1.0f, 1.0f))
+                }
             }
         } else {
             if (entering) {
-                performEnterAnimation(animProgress)
+                performNewEnterAnimation(animProgress)
             } else if (exiting) {
                 performExitAnimation(animProgress)
             }
