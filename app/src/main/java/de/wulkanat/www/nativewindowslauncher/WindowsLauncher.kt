@@ -7,22 +7,22 @@ import java.nio.ByteOrder
 class WindowsLauncher(val parent: GLRenderer) {
     companion object {
         //TODO: Official animation only makes use of Six rows, all after that are being treated as one row.
-        val enterDuration = 0.4
-        val enterRowZoomDifference = 2.0f
-        val enterRowZoomOffset = 0.01
-        val relativeEnterRowZoomOffsets = floatArrayOf(0.01f,
-                0.03f, 0.01f,
-                0.03f, 0.01f,
-                0.03f, 0.01f)
+        val enterDuration = 0.6 //0.6
+        //val enterRowZoomDifference = 2.0f
+        //val enterRowZoomOffset = 0.01
+        val relativeEnterRowZoomOffsets = floatArrayOf(0.01f, //0.01
+                0.03f, 0.01f, //0.03, 0.01
+                0.03f, 0.01f, //0.03, 0.01
+                0.03f, 0.01f) //0.03, 0.01
                 //0.021f, 0.01f)
-        val initalZoom = 0.815f
-        val fadeInEnd = 0.00f
-        val fadeInStart = 0.185f
+        val initalZoom = 0.815f //0.185, Measured
+        val fadeInEnd = 0.05f
+        val fadeInStart = 0.185f //0.185, Measured
 
         val fadeInNum1 = 0.0
-        val fadeInNum2 = 0.3
-        val fadeInNum3 = 5.0
-        val fadeInLoc = doubleArrayOf(0.5, 0.05)
+        val fadeInNum2 = 0.4 //0.3
+        val fadeInNum3 = 7.2 //7.2
+        val fadeInLoc = doubleArrayOf(0.68, 0.1) //0.68, 0.1
 
 
         val overscrollNum1 = 0.0
@@ -42,6 +42,8 @@ class WindowsLauncher(val parent: GLRenderer) {
         val fadeOutLoc = doubleArrayOf(0.43, 0.29)
 
         val inds = shortArrayOf(0, 1, 2, 0, 2, 3)
+
+        val longTapDuraion = 1.5
     }
 
     var fadeInInterpolator = AccExpInterpolator(fadeInNum1, fadeInNum2, fadeInNum3, fadeInLoc)
@@ -64,7 +66,7 @@ class WindowsLauncher(val parent: GLRenderer) {
     var navBarHeightPercentage: Float = 0.0f
     var navBarHeight: Float = 0.0f
     var overscrollDist: Float = 0.2090278f * 2 - topMargin //0,20902 / Period
-    val overscrollDuration = 0.25
+    val overscrollDuration = 0.5 //0.25
     var todoOverscrollDist = 0.0f
     var overscrollElapsed = 0.0
 
@@ -88,13 +90,12 @@ class WindowsLauncher(val parent: GLRenderer) {
     var rowsOnScreen = 0.0f
     var animProgress = 0.0
     var enterTemporalOffsets = DoubleArray(relativeEnterRowZoomOffsets.size)
-    //var absoluteEnterRowZoomOffsets = FloatArray(relativeEnterRowZoomOffsets.size)
     var fadeInInterpolators = ArrayList<AccExpInterpolator>()
 
     var exiting = false
     var entering = false
 
-    val tapTolerance = 0.005f
+    val tapTolerance = 0.0005f
     var tapPosition  = FloatArray(2)
     var tapInitiated = false
     var timeSinceTap = 0.0
@@ -102,6 +103,9 @@ class WindowsLauncher(val parent: GLRenderer) {
     var exitStartPos = 0.0f
     var exitAnimTime = 0.0
     var exitTapTileLoc = IntArray(2)
+
+    var appDrawer = false
+    var editMode = false
 
     init {
         addTile(Tile(0, 0, 1, 1))
@@ -164,12 +168,6 @@ class WindowsLauncher(val parent: GLRenderer) {
 
         }
 
-        /*var x = relativeEnterRowZoomOffsets[0]
-        for (i in 1..(relativeEnterRowZoomOffsets.size - 1)) {
-            x += relativeEnterRowZoomOffsets[i]
-            absoluteEnterRowZoomOffsets[i] = x
-        }*/
-
         rowsOnScreen = Math.abs(glGrid[3] - glGrid[2]) / tileAndMarginCache
         startTileIndex = (((Math.abs(glGrid[3] - glGrid[2]) - statusBarHeight - topMargin + scrollDist)) / tileAndMarginCache).toInt()
     }
@@ -190,22 +188,6 @@ class WindowsLauncher(val parent: GLRenderer) {
 
         exitAnimTime = (exitDuration / 2) / rowsOnScreen
         exitStartPos = scrollDist / tileAndMarginCache
-    }
-
-    fun performEnterAnimation(progress: Double) {
-        for (tile in tiles) {
-            val tempZoom = 1.0f - (initalZoom - (startTileIndex - (tile.posY + tile.spanY - 1.0f)) * enterRowZoomDifference)
-            val zoom = 1.0f - (fadeInInterpolator.getMulti(progress, enterDuration) * tempZoom).toFloat()
-
-            var alpha = (zoom - (1f - fadeInStart)) / ((1f - fadeInEnd) - (1f - fadeInStart))
-            if (zoom > 1f - fadeInEnd) {
-                alpha = 1f
-            } else if (zoom < 1f - fadeInStart) {
-                alpha = 0f
-            }
-
-            calculateTile(tile, zoom, floatArrayOf(0.24313f, 0.396078f, 1.0f, alpha))
-        }
     }
 
     fun performNewEnterAnimation(progress: Double) {
@@ -271,7 +253,7 @@ class WindowsLauncher(val parent: GLRenderer) {
         if (animProgress <= 0.0) {
             if (exiting) {
                 initEnterAnimation()
-                performEnterAnimation(animProgress)
+                performNewEnterAnimation(animProgress)
             } else {
                 for (tile in tiles) {
                     //TODO: calc in seperate Thread
@@ -318,7 +300,7 @@ class WindowsLauncher(val parent: GLRenderer) {
                -parent.yTouchPos < t[1] + t[3]
     }
 
-    fun onTapEvent() {
+    fun onTapEvent(longTap: Boolean) {
         for (tile in tiles) {
             if (tileTouched(tile)) {
                 //TODO: handle touch
@@ -332,8 +314,10 @@ class WindowsLauncher(val parent: GLRenderer) {
         if (Math.abs(parent.xTouchPos - tapPosition[0]) <= tapTolerance && Math.abs(parent.yTouchPos - tapPosition[1]) <= tapTolerance) {
             if (parent.fingerDown) {
                 tapInitiated = true
+                if (timeSinceTap > longTapDuraion)
+                    onTapEvent(true)
             } else if (tapInitiated) {
-                onTapEvent()
+                onTapEvent(false)
                 tapInitiated = false
             }
         } else {
