@@ -19,6 +19,15 @@ add_library( # Sets the name of the library.
              # Provides a relative path to your source file(s).
              src/main/cpp/native-lib.cpp )
 
+             add_library( # Sets the name of the library.
+                          GLRender
+
+                          # Sets the library as a shared library.
+                          SHARED
+
+                          # Provides a relative path to your source file(s).
+                          src/main/cpp/GLRender.cpp )
+
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
 # default, you only need to specify the name of the public NDK library
@@ -27,6 +36,7 @@ add_library( # Sets the name of the library.
 
 find_library( # Sets the name of the path variable.
               log-lib
+              GLESv2
 
               # Specifies the name of the NDK library that
               # you want CMake to locate.
@@ -36,9 +46,8 @@ find_library( # Sets the name of the path variable.
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
-target_link_libraries( # Specifies the target library.
-                       native-lib
-
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib} )
+target_link_libraries(native-lib
+                       ${log-lib})
+target_link_libraries(GLRender
+                        EGL
+                        GLESv2)

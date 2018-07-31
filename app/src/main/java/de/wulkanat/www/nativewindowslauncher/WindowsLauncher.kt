@@ -326,7 +326,6 @@ class WindowsLauncher(val parent: GLRenderer) {
     }
 
     fun handleTouch(elapsed: Double) {
-
         if (Math.abs(parent.xTouchPos - tapPosition[0]) <= tapTolerance && Math.abs(parent.yTouchPos - tapPosition[1]) <= tapTolerance) {
             if (parent.fingerDown) {
                 tapInitiated = true

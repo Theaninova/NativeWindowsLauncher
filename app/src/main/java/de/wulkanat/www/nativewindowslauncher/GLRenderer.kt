@@ -37,6 +37,7 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
     var mProgram: Int? = null
 
     var windowsLauncher = WindowsLauncher(this)
+    var nativeRenderer = GLRenderNative()
 
     init {
         mLastTime = System.currentTimeMillis()
@@ -52,7 +53,7 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
     }
 
     override fun onDrawFrame(p0: GL10?) {
-        val now = System.currentTimeMillis()
+        /*val now = System.currentTimeMillis()
         if (now == mLastTime) return
         val elapsed = now - mLastTime
 
@@ -60,7 +61,8 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
 
         render(mtrxProjectionAndView)
 
-        mLastTime = now
+        mLastTime = now*/
+        nativeRenderer.on_draw_frame()
     }
 
     private fun render(m: FloatArray) {
@@ -72,7 +74,7 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
-        mScreenWidth = width.toFloat()
+        /*mScreenWidth = width.toFloat()
         mScreenHeight = height.toFloat()
 
         mAspectRatio = mScreenHeight / mScreenWidth
@@ -97,11 +99,12 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
 
         Matrix.orthoM(mtrxProjection, 0, glGrid[0], glGrid[1], glGrid[3], glGrid[2], 1f, -1f)
         Matrix.setLookAtM(mtrxView, 0, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f)
-        Matrix.multiplyMM(mtrxProjectionAndView, 0, mtrxProjection, 0, mtrxView, 0)
+        Matrix.multiplyMM(mtrxProjectionAndView, 0, mtrxProjection, 0, mtrxView, 0)*/
+        nativeRenderer.on_surface_changed(width, height)
     }
 
     override fun onSurfaceCreated(p0: GL10?, p1: EGLConfig?) {
-        GLES20.glEnable(GLES20.GL_BLEND)
+        /*GLES20.glEnable(GLES20.GL_BLEND)
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
 
         GLES20.glClearColor(0f, 0f, 0f, 1f)
@@ -114,7 +117,8 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
         GLES20.glAttachShader(RiGraphicTools.sp_SolidColor, fragmentShader)
         GLES20.glLinkProgram(RiGraphicTools.sp_SolidColor)
 
-        GLES20.glUseProgram(RiGraphicTools.sp_SolidColor)
+        GLES20.glUseProgram(RiGraphicTools.sp_SolidColor)*/
+        nativeRenderer.on_surface_created()
     }
 
     fun drawTile(tile: Tile, m: FloatArray) {

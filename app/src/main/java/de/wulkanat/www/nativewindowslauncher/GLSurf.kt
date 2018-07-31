@@ -1,6 +1,7 @@
 package de.wulkanat.www.nativewindowslauncher
 
 import android.content.Context
+import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.view.MotionEvent
 import android.view.VelocityTracker
@@ -18,6 +19,8 @@ class GLSurf(context: Context, statusBarHeightPixels: Int, navBarHeightPixels: I
         setRenderer(mRenderer)
 
         renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
+
+        
     }
 
     override fun onPause() {
