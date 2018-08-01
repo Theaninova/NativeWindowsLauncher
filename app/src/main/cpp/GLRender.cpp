@@ -41,6 +41,8 @@ void init(int mStatusBarHeightPixels, int mNavBarHeightPixels) {
     statusBarHeightPixels = mStatusBarHeightPixels;
     navBarHeightPixels = mNavBarHeightPixels;
 
+
+
     windows_launcher_init(&sharedValues);
 }
 

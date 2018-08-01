@@ -66,7 +66,7 @@ const float relativeEnterRowZoomOffsets[relativeEnterRowZoomOffsetsSize] = {0.01
 
 //0.021f, 0.01f)
 const float initalZoom = 0.815f; //0.185, Measured
-const float fadeInEnd = 0.05f;
+const float fadeInEnd = 0.00f;
 const float fadeInStart = 0.185f; //0.185, Measured
 
 const double fadeInNum1 = 0.0;
