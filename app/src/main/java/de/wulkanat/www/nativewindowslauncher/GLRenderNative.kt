@@ -14,4 +14,8 @@ class GLRenderNative {
     external fun on_draw_frame()
 
     external fun init()
+
+    external fun onPause()
+
+    external fun onResume()
 }

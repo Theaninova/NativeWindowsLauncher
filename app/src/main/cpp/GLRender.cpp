@@ -24,6 +24,14 @@ void init() {
     windows_launcher_init(me);
 }
 
+void onPause() {
+
+}
+
+void onResume() {
+
+}
+
 extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_init
         (JNIEnv * env, jclass cls) {
     init();
@@ -42,6 +50,16 @@ extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLR
 extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_on_1draw_1frame
         (JNIEnv * env, jclass cls) {
     on_draw_frame();
+}
+
+extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_onPause
+        (JNIEnv * env, jclass cls) {
+    onPause();
+}
+
+extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_onResume
+        (JNIEnv * env, jclass cls) {
+    onResume();
 }
 
 void drawTile(Tile * tile, float m[]) {
