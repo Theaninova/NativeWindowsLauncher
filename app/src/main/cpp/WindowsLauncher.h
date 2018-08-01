@@ -19,8 +19,6 @@ struct Tile {
     int spanX;
     int spanY;
 
-    //TODO: Float, short buffer
-
     const static size_t vertBufferSize = 3 * 4;
     const static size_t drawListBufferSize = 6;
     const static size_t colorBufferSize = 4;
@@ -35,7 +33,7 @@ struct Tile {
     float currentZoom = 0.0f;
 };
 
-//shared variables (Pointers)
+//Shared Variables
 struct SharedValues {
     float yVelocityTouch = 0.0f;
     float xVelocityTouch = 0.0f;
@@ -54,8 +52,6 @@ struct SharedValues {
 
     std::vector<Tile> tiles;
 };
-
-SharedValues * parent;
 
 //Constansts ONLY
 const float enterDuration = 0.62; //0.6

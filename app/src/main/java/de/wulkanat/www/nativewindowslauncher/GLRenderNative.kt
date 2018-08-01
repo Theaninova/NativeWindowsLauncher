@@ -20,7 +20,7 @@ class GLRenderNative(mContext: Context, statusBarHeight: Int, navBarHeight: Int)
     var dxTouch = 0.0f
     var dyTouch = 0.0f
 
-    var glGrid = FloatArray(4);
+    var glGrid = FloatArray(4)
 
     init {
         System.loadLibrary("GLRender")

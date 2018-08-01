@@ -47,9 +47,6 @@ find_library( # Sets the name of the path variable.
               log-lib
               GLESv2
 
-              AccExpInterpolator
-              Matrix
-
               # Specifies the name of the NDK library that
               # you want CMake to locate.
               log )

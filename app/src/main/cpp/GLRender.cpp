@@ -64,6 +64,8 @@ extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLR
 
 extern "C" JNIEXPORT jfloatArray JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_on_1surface_1changed
         (JNIEnv * env, jclass cls, int width, int height) {
+    on_surface_changed(width, height);
+
     jfloatArray result = env->NewFloatArray(4);
     jfloat array1[4];
 
@@ -73,8 +75,6 @@ extern "C" JNIEXPORT jfloatArray JNICALL Java_de_wulkanat_www_nativewindowslaunc
     array1[3] = sharedValues.glGrid[3];
 
     env->SetFloatArrayRegion(result, 0, 4, array1);
-
-    on_surface_changed(width, height);
 
     return result;
 }

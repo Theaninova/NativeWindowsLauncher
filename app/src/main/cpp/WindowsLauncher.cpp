@@ -9,6 +9,7 @@ AccExpInterpolator fadeInInterpolator = AccExpInterpolator(fadeInNum1, fadeInNum
 AccExpInterpolator fadeOutInterpolator = AccExpInterpolator(fadeOutNum1, fadeOutNum2, fadeOutNum3, fadeOutLoc);
 AccExpInterpolator overscrollInterpolator = AccExpInterpolator(overscrollNum1, overscrollNum2, overscrollNum3, overscrollLoc);
 
+SharedValues * parent;
 
 float statusBarHeight = 0.0f;
 
