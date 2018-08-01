@@ -79,6 +79,12 @@ const double overscrollNum2 = 1.0;
 const double overscrollNum3 = 0.0;
 double overscrollLoc[] = { 0.71, 0.25 };
 
+const double drawerOpenDuration = 1.5;
+const double drawerOpenNum1 = 0.0;
+const double drawerOpenNum2 = 0.4; //0.3
+const double drawerOpenNum3 = 7.2; //7.2
+double drawerOpenLoc[] = { 0.68, 0.1 }; //0.68, 0.1
+
 const double exitDuration = 0.36;
 const float targetZoom = 1.5f;
 const float fadeOutEnd = 0.5f;

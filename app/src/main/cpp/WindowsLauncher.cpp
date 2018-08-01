@@ -8,6 +8,7 @@
 AccExpInterpolator fadeInInterpolator = AccExpInterpolator(fadeInNum1, fadeInNum2, fadeInNum3, fadeInLoc);
 AccExpInterpolator fadeOutInterpolator = AccExpInterpolator(fadeOutNum1, fadeOutNum2, fadeOutNum3, fadeOutLoc);
 AccExpInterpolator overscrollInterpolator = AccExpInterpolator(overscrollNum1, overscrollNum2, overscrollNum3, overscrollLoc);
+AccExpInterpolator drawerOpenInterpolator = AccExpInterpolator(drawerOpenNum1, drawerOpenNum2, drawerOpenNum3, drawerOpenLoc);
 
 SharedValues * parent;
 
@@ -48,6 +49,12 @@ int exitTapTileLoc[2];
 
 bool appDrawer = false;
 int editModeSelectedTile = 0;
+
+//0 For vertical, 1 for horizontal (Switching to app drawer)
+int scrollType = -1;
+float hScrollDist = 0.0f;
+float origHScrollDist = 0.0f;
+double drawerOpenProgress = 0.0;
 
 /*
  * CALL THIS FIRST
@@ -134,7 +141,7 @@ void calculateTile(int tile, float origZoom, float color[4]) {
     float zoom = origZoom + additionalZoom;
 
     float yPos = (parent->glGrid[2] + topMargin + (float) parent->tiles[tile].posY * tileAndMarginCache + scrollDist + statusBarHeight) * zoom;
-    float xPos = tileXPosChache[parent->tiles[tile].posX] * zoom;
+    float xPos = tileXPosChache[parent->tiles[tile].posX] * zoom - hScrollDist;
     float xSize = (tileSizeCache + (float) (parent->tiles[tile].spanX - 1) * tileAndMarginCache) * zoom;
     float ySize = (tileSizeCache + (float) (parent->tiles[tile].spanY - 1) * tileAndMarginCache) * zoom;
 
@@ -286,7 +293,20 @@ void onTapEvent(bool longTap) {
 
 void scroll(double elapsed, float divideBy) {
     if (parent->fingerDown) {
-        scrollDist -= parent->dyTouch / divideBy;
+        if (scrollType == 0)
+            scrollDist -= parent->dyTouch / divideBy;
+        else if (scrollType == 1 && hScrollDist >= 0 && hScrollDist <= parent->glGrid[1] - parent->glGrid[0] ) {
+            hScrollDist -= parent->dxTouch;
+            appDrawer = (hScrollDist > (parent->glGrid[1] - parent->glGrid[0]) / 2);
+        }
+
+        if (hScrollDist < 0) {
+            hScrollDist = 0;
+            scrollType = -1;
+        } else if (hScrollDist > parent->glGrid[1] - parent->glGrid[0]) {
+            hScrollDist = parent->glGrid[1] - parent->glGrid[0];
+            scrollType = -1;
+        }
     } else {
         scrollDist -= (parent->yVelocityTouch / divideBy) * (float) elapsed;
     }
@@ -310,7 +330,48 @@ void overscrollEffect(bool top, double elapsed) {
     }
 }
 
+void openCloseAppDrawer(double elapsed) {
+    if (drawerOpenProgress < 0) {
+        if (!appDrawer)
+            hScrollDist = 0;
+        else
+            hScrollDist = parent->glGrid[1] - parent->glGrid[0];
+        scrollType = -1;
+        drawerOpenProgress = drawerOpenDuration;
+
+        return;
+    }
+
+    if (appDrawer) {
+        hScrollDist = parent->glGrid[1] - parent->glGrid[0] - (float) drawerOpenInterpolator.getMulti(drawerOpenProgress, drawerOpenDuration) * (parent->glGrid[1] - parent->glGrid[0] - origHScrollDist);
+    } else {
+        hScrollDist = origHScrollDist * (float) drawerOpenInterpolator.getMulti(drawerOpenProgress, drawerOpenDuration);
+    }
+
+    drawerOpenProgress -= elapsed;
+}
+
 void handleTouch(double elapsed) {
+    if (parent->fingerDown) {
+        drawerOpenProgress = drawerOpenDuration;
+    }
+
+    if (parent->fingerDown && scrollType == -1) {
+        if (std::abs(parent->dyTouch) > std::abs(parent->dxTouch)) {
+            scrollType = 0;
+        } else if (std::abs(parent->dyTouch) < std::abs(parent->dxTouch)) {
+            scrollType = 1;
+        }
+    } else if (!parent->fingerDown && scrollType == 1) {
+        openCloseAppDrawer(elapsed);
+    } else if (!parent->fingerDown && scrollType == 0 && parent->yVelocityTouch < 1.0) {
+        scrollType = -1;
+    }
+
+    if (parent->fingerDown && scrollType == 1) {
+        origHScrollDist = hScrollDist;
+    }
+
     if (std::abs(parent->xTouchPos - tapPosition[0]) <= tapTolerance && std::abs(parent->yTouchPos - tapPosition[1]) <= tapTolerance && !parent->fingerMoved) {
         if (parent->fingerDown) {
             tapInitiated = true;
