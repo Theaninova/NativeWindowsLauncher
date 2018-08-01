@@ -4,7 +4,11 @@ import android.opengl.GLES20
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
-class Tile(var posX: Int, var posY: Int, var spanX: Int, var spanY: Int) {
+//DEPRECATED.
+
+//DO NOT USE. CODE IS OLD.
+
+/*class Tile(var posX: Int, var posY: Int, var spanX: Int, var spanY: Int) {
     var vertBuffer: FloatBuffer? = null
     var drawListBuffer: ShortBuffer? = null
     var colorBuffer: FloatArray? = null
@@ -14,4 +18,4 @@ class Tile(var posX: Int, var posY: Int, var spanX: Int, var spanY: Int) {
     var renderColorBuffer: FloatArray? = null
 
     var currentZoom = 0.0f
-}
+}*/

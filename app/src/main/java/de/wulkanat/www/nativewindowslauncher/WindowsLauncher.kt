@@ -3,9 +3,14 @@ package de.wulkanat.www.nativewindowslauncher
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class WindowsLauncher(val parent: GLRenderer) {
+/*
+CODE IS DEPRECATED
+
+TO BE DELETED. USE C++ Version. Performance is 10-20 times better.
+ */
+
+/*class WindowsLauncher(val parent: GLRenderer) {
     companion object {
-        //TODO: Official animation only makes use of Six rows, all after that are being treated as one row.
         val enterDuration = 0.62 //0.6
         //val enterRowZoomDifference = 2.0f
         //val enterRowZoomOffset = 0.01
@@ -262,7 +267,6 @@ class WindowsLauncher(val parent: GLRenderer) {
                 performNewEnterAnimation(animProgress)
             } else {
                 for (tile in tiles.indices) {
-                    //TODO: calc in seperate Thread
                     calculateTile(tile, 1.0f, floatArrayOf(0.24313f, 0.396078f, 1.0f, 1.0f))
                 }
             }
@@ -281,8 +285,6 @@ class WindowsLauncher(val parent: GLRenderer) {
         } else {
             timeSinceTap = 0.0
         }
-
-        //TODO: multithreading, check for GPU finished
 
         for (tile in tiles) {
             //Swap buffers in tiles
@@ -468,4 +470,4 @@ class WindowsLauncher(val parent: GLRenderer) {
 
         gridHeight = gridHeightSpan.toFloat() * tileAndMarginCache
     }
-}
+}*/

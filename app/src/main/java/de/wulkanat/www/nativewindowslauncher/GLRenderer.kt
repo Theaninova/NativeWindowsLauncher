@@ -7,7 +7,15 @@ import android.opengl.Matrix
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHeightPixels: Int) : GLSurfaceView.Renderer {
+//DEPRECATED
+
+/*
+DO NOT USE.
+
+CODE IS OLD AND SLOW. USE GLRenderNative instead.
+ */
+
+/*class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHeightPixels: Int) : GLSurfaceView.Renderer {
     private val mtrxProjection = FloatArray(16)
     private val mtrxView = FloatArray(16)
     private val mtrxProjectionAndView = FloatArray(16)
@@ -134,4 +142,4 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, inds.size, GLES20.GL_UNSIGNED_SHORT, tile.renderDrawListBuffer)
         GLES20.glDisableVertexAttribArray(mPositionHandle)
     }
-}
+}*/

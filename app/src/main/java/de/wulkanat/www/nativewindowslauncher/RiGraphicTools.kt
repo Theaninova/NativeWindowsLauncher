@@ -2,7 +2,9 @@ package de.wulkanat.www.nativewindowslauncher
 
 import android.opengl.GLES20
 
-class RiGraphicTools {
+//DEPRECATED
+
+/*class RiGraphicTools {
     companion object {
         var sp_SolidColor: Int = 0
 
@@ -35,4 +37,4 @@ class RiGraphicTools {
             return shader
         }
     }
-}
+}*/
