@@ -56,12 +56,12 @@ struct SharedValues {
 };
 
 //Constansts ONLY
-const double enterDuration = 0.62 * 10; //0.6
+const double enterDuration = 0.62; //0.6
 const int relativeEnterRowZoomOffsetsSize = 7;
-const float relativeEnterRowZoomOffsets[relativeEnterRowZoomOffsetsSize] = {0.01f, //0.01
-                                               0.03f, 0.01f, //0.03, 0.01
-                                               0.03f, 0.01f, //0.03, 0.01
-                                               0.03f, 0.01f}; //0.03, 0.01
+const float relativeEnterRowZoomOffsets[relativeEnterRowZoomOffsetsSize] = {0.015f, //0.01
+                                               0.03f, 0.015f, //0.03, 0.01
+                                               0.03f, 0.015f, //0.03, 0.01
+                                               0.03f, 0.015f}; //0.03, 0.01
 
 //0.021f, 0.01f)
 const float initalZoom = 0.815f; //0.185, Measured

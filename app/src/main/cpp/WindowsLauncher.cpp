@@ -192,10 +192,11 @@ void performNewEnterAnimation(double progress) {
     float alphaCache [relativeEnterRowZoomOffsetsSize];
 
     for (int i = 0; i < relativeEnterRowZoomOffsetsSize; i++) {
+        zoomCache[i] = initalZoom;
         if (progress <= enterDuration - enterTemporalOffsets[i])
             zoomCache[i] = 1.0f - (float) (fadeInInterpolator.getMulti(progress, enterDuration - enterTemporalOffsets[i]) * (1.0f - initalZoom));
 
-        if ((i + 1 < relativeEnterRowZoomOffsetsSize) && (enterTemporalOffsets[i + 1] >= enterDuration) && (zoomCache[i] >= initalZoom + relativeEnterRowZoomOffsets[i])) {
+        if ((i + 1 < relativeEnterRowZoomOffsetsSize) && (enterTemporalOffsets[i + 1] >= enterDuration) && (zoomCache[i] >= initalZoom + relativeEnterRowZoomOffsets[i + 1])) {
             enterTemporalOffsets[i + 1] = enterDuration - progress;
         }
 
@@ -208,7 +209,7 @@ void performNewEnterAnimation(double progress) {
     }
 
     for (int i = 0; i < parent->tiles.size(); i++) {
-        int tileOffset = startTileIndex - (parent->tiles[i].posY + parent->tiles[i].spanY);
+        int tileOffset = startTileIndex - (parent->tiles[i].posY + 2);
         if (tileOffset < 0)
             tileOffset = 0;
         else if (tileOffset >= relativeEnterRowZoomOffsetsSize)
