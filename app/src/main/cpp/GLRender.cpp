@@ -118,8 +118,20 @@ void render(float m[]) {
 }
 
 void on_surface_created() {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+    GLuint vertexShader = (GLuint) loadShader(GL_VERTEX_SHADER, &vs_SolidColor, &vs_SolidColorSize);
+    GLuint fragmentShader = (GLuint) loadShader(GL_FRAGMENT_SHADER, &fs_SolidColor, &fs_SolidColorSize);
+
+    sp_SolidColor = glCreateProgram();
+    glAttachShader(sp_SolidColor, vertexShader);
+    glAttachShader(sp_SolidColor, fragmentShader);
+    glLinkProgram(sp_SolidColor);
+
+    glUseProgram(sp_SolidColor);
 }
 
 void on_surface_changed(int width, int height) {
