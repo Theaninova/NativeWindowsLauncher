@@ -42,6 +42,7 @@ struct SharedValues {
     float xTouchPos = 0.0f;
     float yTouchPos = 0.0f;
     bool fingerDown = false;
+    bool fingerMoved = false;
 
     float glGrid[4] = { -1.0f, 1.0f, -1.0f, 1.0f};
     const static int indsSize = 6;

@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
 
     fun getNavBarHeightPixels(): Int {
         var result = 0
-        var resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
+        val resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
         if (resourceId > 0) {
             result = resources.getDimensionPixelSize(resourceId)
         }

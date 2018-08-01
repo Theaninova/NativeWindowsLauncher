@@ -34,4 +34,4 @@ SharedValues sharedValues;
 
 void on_surface_created();
 void on_surface_changed(int width, int height);
-void on_draw_frame(float mxTouchPos, float myTouchPos, float mxVelocityTouch, float myVelocityTouch, float mdxTouch, float mdyTouch, bool mfingerDown);
+void on_draw_frame();

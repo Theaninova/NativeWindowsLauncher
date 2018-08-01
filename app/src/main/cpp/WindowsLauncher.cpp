@@ -311,7 +311,7 @@ void overscrollEffect(bool top, double elapsed) {
 }
 
 void handleTouch(double elapsed) {
-    if (std::abs(parent->xTouchPos - tapPosition[0]) <= tapTolerance && std::abs(parent->yTouchPos - tapPosition[1]) <= tapTolerance) {
+    if (std::abs(parent->xTouchPos - tapPosition[0]) <= tapTolerance && std::abs(parent->yTouchPos - tapPosition[1]) <= tapTolerance && !parent->fingerMoved) {
         if (parent->fingerDown) {
             tapInitiated = true;
             if (timeSinceTap > longTapDuraion)

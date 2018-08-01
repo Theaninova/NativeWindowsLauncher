@@ -42,6 +42,7 @@ class GLSurf(context: Context, statusBarHeightPixels: Int, navBarHeightPixels: I
                 velocityTracker!!.clear()
 
                 mRenderer.fingerDown = true
+                mRenderer.fingerMoved = false
 
                 mRenderer.xTouchPos = (e.x - mRenderer.mScreenWidth / 2) / mRenderer.mScreenWidth * 2
                 mRenderer.yTouchPos = ((e.y - mRenderer.mScreenHeight / 2) / mRenderer.mScreenHeight) * (mRenderer.glGrid[2] - mRenderer.glGrid[3])
@@ -51,11 +52,12 @@ class GLSurf(context: Context, statusBarHeightPixels: Int, navBarHeightPixels: I
 
             MotionEvent.ACTION_MOVE -> {
                 velocityTracker!!.addMovement(e)
+                mRenderer.fingerMoved = true
 
                 mRenderer.dxTouch = (e.x - previousX) / mRenderer.mScreenWidth * 2
                 mRenderer.dyTouch = ((e.y - previousY)  / mRenderer.mScreenHeight) * (mRenderer.glGrid[2] - mRenderer.glGrid[3])
 
-                velocityTracker!!.computeCurrentVelocity(1000)
+                velocityTracker!!.computeCurrentVelocity(1000, mRenderer.mScreenHeight / 0.5f)
 
                 mRenderer.xVelocityTouch = (velocityTracker!!.xVelocity / mRenderer.mScreenWidth) * 2
                 mRenderer.yVelocityTouch = (velocityTracker!!.yVelocity / mRenderer.mScreenWidth) * (mRenderer.glGrid[2] - mRenderer.glGrid[3])

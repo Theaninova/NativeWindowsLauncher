@@ -80,8 +80,19 @@ extern "C" JNIEXPORT jfloatArray JNICALL Java_de_wulkanat_www_nativewindowslaunc
 }
 
 extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_on_1draw_1frame
-        (JNIEnv * env, jclass cls, float mxTouchPos, float myTouchPos, float mxVelocityTouch, float myVelocityTouch, float mdxTouch, float mdyTouch, bool mfingerDown) {
-    on_draw_frame(mxTouchPos, myTouchPos, mxVelocityTouch, myVelocityTouch, mdxTouch, mdyTouch, mfingerDown);
+        (JNIEnv * env, jclass cls, float mxTouchPos, float myTouchPos, float mxVelocityTouch, float myVelocityTouch, float mdxTouch, float mdyTouch, bool mfingerDown, bool fingerMoved) {
+    if (mfingerDown) {
+        sharedValues.xTouchPos = mxTouchPos;
+        sharedValues.yTouchPos = myTouchPos;
+        sharedValues.xVelocityTouch = mxVelocityTouch;
+        sharedValues.yVelocityTouch = myVelocityTouch;
+        sharedValues.dxTouch = mdxTouch;
+        sharedValues.dyTouch = mdyTouch;
+    }
+    sharedValues.fingerDown = mfingerDown;
+    sharedValues.fingerMoved = fingerMoved;
+
+    on_draw_frame();
 }
 
 extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_onPause
@@ -165,17 +176,7 @@ void on_surface_changed(int width, int height) {
     multiplyMM(mtrxProjectionAndView, mtrxProjection, mtrxView);
 }
 
-void on_draw_frame(float mxTouchPos, float myTouchPos, float mxVelocityTouch, float myVelocityTouch, float mdxTouch, float mdyTouch, bool mfingerDown) {
-    if (mfingerDown) {
-        sharedValues.xTouchPos = mxTouchPos;
-        sharedValues.yTouchPos = myTouchPos;
-        sharedValues.xVelocityTouch = mxVelocityTouch;
-        sharedValues.yVelocityTouch = myVelocityTouch;
-        sharedValues.dxTouch = mdxTouch;
-        sharedValues.dyTouch = mdyTouch;
-    }
-    sharedValues.fingerDown = mfingerDown;
-
+void on_draw_frame() {
     auto now = std::chrono::high_resolution_clock::now();
     if (now == mLastTime) return;
 

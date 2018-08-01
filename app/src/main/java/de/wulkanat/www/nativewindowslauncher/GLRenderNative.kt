@@ -11,6 +11,8 @@ class GLRenderNative(mContext: Context, statusBarHeight: Int, navBarHeight: Int)
 
     var fingerDown = false
 
+    var fingerMoved = false
+
     var xTouchPos = 0.0f
     var yTouchPos = 0.0f
 
@@ -29,7 +31,7 @@ class GLRenderNative(mContext: Context, statusBarHeight: Int, navBarHeight: Int)
     }
 
     override fun onDrawFrame(p0: GL10?) {
-        on_draw_frame(xTouchPos, yTouchPos, xVelocityTouch, yVelocityTouch, dxTouch, dyTouch, fingerDown)
+        on_draw_frame(xTouchPos, yTouchPos, xVelocityTouch, yVelocityTouch, dxTouch, dyTouch, fingerDown, fingerMoved)
     }
 
     override fun onSurfaceChanged(p0: GL10?, width: Int, height: Int) {
@@ -47,7 +49,7 @@ class GLRenderNative(mContext: Context, statusBarHeight: Int, navBarHeight: Int)
 
     external fun on_surface_changed(width: Int, height: Int): FloatArray
 
-    external fun on_draw_frame(mxTouchPos: Float, myTouchPos: Float, mxVelocityTouch: Float, myVelocityTouch: Float, mdxTouch: Float, mdyTouch: Float, mfingerDown: Boolean)
+    external fun on_draw_frame(mxTouchPos: Float, myTouchPos: Float, mxVelocityTouch: Float, myVelocityTouch: Float, mdxTouch: Float, mdyTouch: Float, mfingerDown: Boolean, fingerMoved: Boolean)
 
     external fun init(mStatusBarHeightPixels: Int, mNavBarHeightPixels: Int)
 
