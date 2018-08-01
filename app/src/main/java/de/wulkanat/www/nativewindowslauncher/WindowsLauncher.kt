@@ -3,7 +3,6 @@ package de.wulkanat.www.nativewindowslauncher
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-
 class WindowsLauncher(val parent: GLRenderer) {
     companion object {
         //TODO: Official animation only makes use of Six rows, all after that are being treated as one row.

@@ -32,7 +32,7 @@ Tile initTile(int x, int y, int sx, int sy) {
     return out;
 }
 
-void windows_launcher_init(Parent mParent) {
+void windows_launcher_init(SharedValues * mParent) {
     parent = mParent;
 
     addTile(initTile(0, 0, 1, 1));
@@ -93,7 +93,7 @@ void calculateTile(int tile, float origZoom, float color[4]) {
 
     float zoom = origZoom + additionalZoom;
 
-    float yPos = (parent.glGrid[2] + topMargin + (float) tiles[tile].posY * tileAndMarginCache + scrollDist + statusBarHeight) * zoom;
+    float yPos = (parent->glGrid[2] + topMargin + (float) tiles[tile].posY * tileAndMarginCache + scrollDist + statusBarHeight) * zoom;
     float xPos = tileXPosChache[tiles[tile].posX] * zoom;
     float xSize = (tileSizeCache + (float) (tiles[tile].spanX - 1) * tileAndMarginCache) * zoom;
     float ySize = (tileSizeCache + (float) (tiles[tile].spanY - 1) * tileAndMarginCache) * zoom;
@@ -111,7 +111,7 @@ void calculateTile(int tile, float origZoom, float color[4]) {
 
     memcpy(tiles[tile].vertBuffer, verticies, sizeof(tiles[tile].vertBuffer));
 
-    memcpy(tiles[tile].drawListBuffer, parent.inds, sizeof(tiles[tile].drawListBuffer));
+    memcpy(tiles[tile].drawListBuffer, parent->inds, sizeof(tiles[tile].drawListBuffer));
 }
 
 void initEnterAnimation() {
@@ -125,8 +125,8 @@ void initEnterAnimation() {
         enterTemporalOffsets[1] = enterDuration;
     }
 
-    rowsOnScreen = abs(parent.glGrid[3] - parent.glGrid[2]) / tileAndMarginCache;
-    startTileIndex = (int) (((abs(parent.glGrid[3] - parent.glGrid[2]) - statusBarHeight - topMargin + scrollDist)) / tileAndMarginCache);
+    rowsOnScreen = abs(parent->glGrid[3] - parent->glGrid[2]) / tileAndMarginCache;
+    startTileIndex = (int) (((abs(parent->glGrid[3] - parent->glGrid[2]) - statusBarHeight - topMargin + scrollDist)) / tileAndMarginCache);
 }
 
 void initExitAnimation(int location[2]) {
@@ -136,7 +136,7 @@ void initExitAnimation(int location[2]) {
 
     memcpy(exitTapTileLoc, location, sizeof(exitTapTileLoc));
 
-    rowsOnScreen = abs(parent.glGrid[3] - parent.glGrid[2]) / tileAndMarginCache;
+    rowsOnScreen = abs(parent->glGrid[3] - parent->glGrid[2]) / tileAndMarginCache;
 
     float x = (exitStartPos + (float) location[1] + appTileOffset) - rowsOnScreen;
     if (x > 0) {
@@ -211,16 +211,16 @@ void performExitAnimation(double progress) {
 bool tileTouched(int tile) {
     float t[] = {
             tileXPosChache[tiles[tile].posX],
-            parent.glGrid[2] + topMargin + (float) tiles[tile].posY * tileAndMarginCache + scrollDist +
+            parent->glGrid[2] + topMargin + (float) tiles[tile].posY * tileAndMarginCache + scrollDist +
             statusBarHeight,
             tileSizeCache + (float) (tiles[tile].spanX - 1) * tileAndMarginCache,
             tileSizeCache + (float) (tiles[tile].spanY - 1) * tileAndMarginCache
     };
 
-    return  *parent.xTouchPos > t[0] &&
-            *parent.xTouchPos < t[0] + t[2] &&
-           -*parent.yTouchPos > t[1] &&
-           -*parent.yTouchPos < t[1] + t[3];
+    return  parent->xTouchPos > t[0] &&
+            parent->xTouchPos < t[0] + t[2] &&
+           -parent->yTouchPos > t[1] &&
+           -parent->yTouchPos < t[1] + t[3];
 }
 
 void onTapEvent(bool longTap) {
@@ -245,10 +245,10 @@ void onTapEvent(bool longTap) {
 }
 
 void scroll(double elapsed, float divideBy) {
-    if (*parent.fingerDown) {
-        scrollDist -= *parent.dyTouch / divideBy;
+    if (parent->fingerDown) {
+        scrollDist -= parent->dyTouch / divideBy;
     } else {
-        scrollDist -= (*parent.yVelocityTouch / divideBy) * (float) elapsed;
+        scrollDist -= (parent->yVelocityTouch / divideBy) * (float) elapsed;
     }
 }
 
@@ -264,15 +264,15 @@ void overscrollEffect(bool top, double elapsed) {
             scrollDist = 0.0f;
         else
             scrollDist = gridOverscrollHeight;
-        *parent.yVelocityTouch = 0.0f;
+        parent->yVelocityTouch = 0.0f;
     } else {
         overscrollElapsed -= elapsed;
     }
 }
 
 void handleTouch(double elapsed) {
-    if (abs(*parent.xTouchPos - tapPosition[0]) <= tapTolerance && abs(*parent.yTouchPos - tapPosition[1]) <= tapTolerance) {
-        if (parent.fingerDown) {
+    if (abs(parent->xTouchPos - tapPosition[0]) <= tapTolerance && abs(parent->yTouchPos - tapPosition[1]) <= tapTolerance) {
+        if (parent->fingerDown) {
             tapInitiated = true;
             if (timeSinceTap > longTapDuraion)
                 onTapEvent(true);
@@ -282,22 +282,22 @@ void handleTouch(double elapsed) {
         }
     } else {
         tapInitiated = false;
-        tapPosition[0] = *parent.xTouchPos;
-        tapPosition[1] = *parent.yTouchPos;
+        tapPosition[0] = parent->xTouchPos;
+        tapPosition[1] = parent->yTouchPos;
     }
 
     if ((scrollDist >= overscrollDist) || (scrollDist <= gridOverscrollHeight - overscrollDist)) {
-        *parent.yVelocityTouch = 0.0f;
-        *parent.dyTouch = 0.0f;
+        parent->yVelocityTouch = 0.0f;
+        parent->dyTouch = 0.0f;
     } else if (scrollDist > 0) {
         scroll(elapsed, 6.0f);
-        if (parent.fingerDown) {
+        if (parent->fingerDown) {
             todoOverscrollDist = scrollDist;
             overscrollElapsed = overscrollDuration;
         }
     } else if (scrollDist < gridOverscrollHeight) {
         scroll(elapsed, 6.0f);
-        if (parent.fingerDown) {
+        if (parent->fingerDown) {
             todoOverscrollDist = scrollDist - gridOverscrollHeight;
             overscrollElapsed = overscrollDuration;
         }
@@ -305,16 +305,16 @@ void handleTouch(double elapsed) {
         scroll(elapsed, 1.0f);
     }
 
-    if (!parent.fingerDown) {
-        if (scrollDist > 0.0f && *parent.yVelocityTouch > -1.0) {
+    if (!parent->fingerDown) {
+        if (scrollDist > 0.0f && parent->yVelocityTouch > -1.0) {
             overscrollEffect(true, elapsed);
-        } else if (scrollDist < gridOverscrollHeight && *parent.yVelocityTouch < 1.0) {
+        } else if (scrollDist < gridOverscrollHeight && parent->yVelocityTouch < 1.0) {
             overscrollEffect(false, elapsed);
         } else {
             if (scrollDist > 0 || scrollDist < gridOverscrollHeight)
-                *parent.yVelocityTouch -= (float) elapsed * (*parent.yVelocityTouch / 0.04f);
+                parent->yVelocityTouch -= (float) elapsed * (parent->yVelocityTouch / 0.04f);
             else
-                *parent.yVelocityTouch -= (float) elapsed * (*parent.yVelocityTouch / 0.4f);
+                parent->yVelocityTouch -= (float) elapsed * (parent->yVelocityTouch / 0.4f);
 
             if (scrollDist > gridOverscrollHeight / 2)
                 todoOverscrollDist = scrollDist;
@@ -326,24 +326,24 @@ void handleTouch(double elapsed) {
 }
 
 void cacheTileValues() {
-    tileSizeCache = ((parent.glGrid[1] - parent.glGrid[0]) - leftSideMargin - rightSideMargin - (gridWidth - 1) * tilesMargin) / gridWidth;
+    tileSizeCache = ((parent->glGrid[1] - parent->glGrid[0]) - leftSideMargin - rightSideMargin - (gridWidth - 1) * tilesMargin) / gridWidth;
 
     tileAndMarginCache = tileSizeCache + tilesMargin;
 
-    float xPos = parent.glGrid[0] + rightSideMargin;
+    float xPos = parent->glGrid[0] + rightSideMargin;
     for (int i = 0; i < gridWidth; i++) {
         tileXPosChache[i] = xPos;
         xPos += tileAndMarginCache;
     }
 
-    statusBarHeight = (parent.glGrid[3] - parent.glGrid[2]) * statusBarHeightPercentage;
+    statusBarHeight = (parent->glGrid[3] - parent->glGrid[2]) * statusBarHeightPercentage;
 
     overscrollDist = 0.2090278f * 2 - topMargin - statusBarHeight;
 
-    navBarHeight = (parent.glGrid[3] - parent.glGrid[2]) * navBarHeightPercentage;
+    navBarHeight = (parent->glGrid[3] - parent->glGrid[2]) * navBarHeightPercentage;
 
     gridHeight = (float) gridHeightSpan * tileAndMarginCache;
-    gridOverscrollHeight = (gridHeight - (parent.glGrid[3] - parent.glGrid[2] - statusBarHeight - navBarHeight)) * -1.0f;
+    gridOverscrollHeight = (gridHeight - (parent->glGrid[3] - parent->glGrid[2] - statusBarHeight - navBarHeight)) * -1.0f;
 }
 
 void update(double elapsed) {

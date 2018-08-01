@@ -37,7 +37,7 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
     var mProgram: Int? = null
 
     var windowsLauncher = WindowsLauncher(this)
-    var nativeRenderer = GLRenderNative(statusBarHeightPixels, navBarHeightPixels)
+    var nativeRenderer = GLRenderNative(mContext, statusBarHeightPixels, navBarHeightPixels)
 
     init {
         mLastTime = System.currentTimeMillis()
@@ -62,7 +62,7 @@ class GLRenderer(mContext: Context, val statusBarHeightPixels: Int, val navBarHe
         render(mtrxProjectionAndView)
 
         mLastTime = now*/
-        nativeRenderer.on_draw_frame()
+        //nativeRenderer.on_draw_frame()
     }
 
     private fun render(m: FloatArray) {

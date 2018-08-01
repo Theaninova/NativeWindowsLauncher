@@ -14,21 +14,21 @@
 #endif //NATIVEWINDOWSLAUNCHER_WINDOWSLAUNCHER_H
 
 //shared variables (Pointers)
-struct Parent {
-    float * yVelocityTouch;
-    float * xVelocityTouch;
-    float * dyTouch;
-    float * dxTouch;
-    float * xTouchPos;
-    float * yTouchPos;
-    bool * fingerDown;
+struct SharedValues {
+    float yVelocityTouch = 0.0f;
+    float xVelocityTouch = 0.0f;
+    float dyTouch = 0.0f;
+    float dxTouch = 0.0f;
+    float xTouchPos = 0.0f;
+    float yTouchPos = 0.0f;
+    bool fingerDown = false;
 
-    float * glGrid;
-    const int * indsSize;
-    short * inds;
+    float glGrid[4] = { -1.0f, 1.0f, -1.0f, 1.0f};
+    const static int indsSize = 6;
+    short inds[indsSize] ={ 0, 1, 2, 0, 2, 3 };
 };
 
-Parent parent;
+SharedValues * parent;
 
 //Local variables
 const float enterDuration = 0.62; //0.6
@@ -148,6 +148,6 @@ int editModeSelectedTile = 0;
 
 //Fuctions for external use
 
-void windows_launcher_init(Parent mParent);
+void windows_launcher_init(SharedValues * mParent);
 void update(double elapsed);
 void cacheTileValues();

@@ -41,20 +41,7 @@ void init(int mStatusBarHeightPixels, int mNavBarHeightPixels) {
     statusBarHeightPixels = mStatusBarHeightPixels;
     navBarHeightPixels = mNavBarHeightPixels;
 
-    Parent me;
-    me.yVelocityTouch = &yVelocityTouch;
-    me.xVelocityTouch = &xVelocityTouch;
-    me.dyTouch = &dyTouch;
-    me.dxTouch = &dxTouch;
-    me.xTouchPos = &xTouchPos;
-    me.yTouchPos = &yTouchPos;
-    me.fingerDown = &fingerDown;
-
-    me.glGrid = glGrid;
-    me.indsSize = &indsSize;
-    me.inds = inds;
-
-    windows_launcher_init(me);
+    windows_launcher_init(&sharedValues);
 }
 
 void onPause() {
@@ -75,14 +62,26 @@ extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLR
     on_surface_created();
 }
 
-extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_on_1surface_1changed
-        (JNIEnv * env, jclass cls, jint width, jint height) {
+extern "C" JNIEXPORT jfloatArray JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_on_1surface_1changed
+        (JNIEnv * env, jclass cls, int width, int height) {
+    jfloatArray result = env->NewFloatArray(4);
+    jfloat array1[4];
+
+    array1[0] = sharedValues.glGrid[0];
+    array1[1] = sharedValues.glGrid[1];
+    array1[2] = sharedValues.glGrid[2];
+    array1[3] = sharedValues.glGrid[3];
+
+    env->SetFloatArrayRegion(result, 0, 4, array1);
+
     on_surface_changed(width, height);
+
+    return result;
 }
 
 extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_on_1draw_1frame
-        (JNIEnv * env, jclass cls) {
-    on_draw_frame();
+        (JNIEnv * env, jclass cls, float mxTouchPos, float myTouchPos, float mxVelocityTouch, float myVelocityTouch, float mdxTouch, float mdyTouch, bool mfingerDown) {
+    on_draw_frame(mxTouchPos, myTouchPos, mxVelocityTouch, myVelocityTouch, mdxTouch, mdyTouch, mfingerDown);
 }
 
 extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_onPause
@@ -105,7 +104,7 @@ void drawTile(Tile * tile, float m[]) {
 
     GLint mtrxhandle = glGetUniformLocation(sp_SolidColor, "uMVPMatrix");
     glUniformMatrix4fv(mtrxhandle, 1, GL_FALSE, m);
-    glDrawElements(GL_TRIANGLES, indsSize, GL_UNSIGNED_SHORT, tile->renderDrawListBuffer);
+    glDrawElements(GL_TRIANGLES, sharedValues.indsSize, GL_UNSIGNED_SHORT, tile->renderDrawListBuffer);
     glDisableVertexAttribArray(mPositionHandle);
 }
 
@@ -140,8 +139,8 @@ void on_surface_changed(int width, int height) {
 
     mAspectRatio = mScreenHeight / mScreenWidth;
 
-    glGrid[2] = -1.0f * (((glGrid[1] - glGrid[0]) * mAspectRatio) / 2.0f);
-    glGrid[3] = -1.0f * glGrid[2];
+    sharedValues.glGrid[2] = -1.0f * (((sharedValues.glGrid[1] - sharedValues.glGrid[0]) * mAspectRatio) / 2.0f);
+    sharedValues.glGrid[3] = -1.0f * sharedValues.glGrid[2];
 
     statusBarHeightPercentage = statusBarHeightPixels / mScreenHeight;
     navBarHeightPercentage = navBarHeightPixels / mScreenHeight;
@@ -156,12 +155,20 @@ void on_surface_changed(int width, int height) {
         mtrxProjectionAndView[i] = 0.0f;
     }
 
-    orthoM(mtrxProjection, 0, glGrid[0], glGrid[1], glGrid[3], glGrid[2], 1.0f, -1.0f);
+    orthoM(mtrxProjection, 0, sharedValues.glGrid[0], sharedValues.glGrid[1], sharedValues.glGrid[3], sharedValues.glGrid[2], 1.0f, -1.0f);
     setLookAtM(mtrxView, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     multiplyMM(mtrxProjectionAndView, mtrxProjection, mtrxView);
 }
 
-void on_draw_frame() {
+void on_draw_frame(float mxTouchPos, float myTouchPos, float mxVelocityTouch, float myVelocityTouch, float mdxTouch, float mdyTouch, bool mfingerDown) {
+    sharedValues.xTouchPos = mxTouchPos;
+    sharedValues.yTouchPos = myTouchPos;
+    sharedValues.xVelocityTouch = mxVelocityTouch;
+    sharedValues.yVelocityTouch = myVelocityTouch;
+    sharedValues.dxTouch = mdxTouch;
+    sharedValues.dyTouch = mdyTouch;
+    sharedValues.fingerDown = mfingerDown;
+
     auto now = std::chrono::high_resolution_clock::now();
     if (now == mLastTime) return;
 

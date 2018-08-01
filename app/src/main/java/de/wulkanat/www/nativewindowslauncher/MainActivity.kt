@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        glSurfaceView.mRenderer.windowsLauncher.editMode = false
+        //glSurfaceView.mRenderer.windowsLauncher.editMode = false
     }
 
     fun getStatusBarHeightPixles(): Int {
