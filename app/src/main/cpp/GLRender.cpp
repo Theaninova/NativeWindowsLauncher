@@ -4,6 +4,35 @@
 
 #include "GLRender.h"
 #include <jni.h>
+#include <string>
+
+static GLenum sp_SolidColor = 0;
+
+const static GLchar * vs_SolidColor =
+                "uniform mat4 uMVPMatrix; "
+                "attribute vec4 vPosition; "
+                "void main() { "
+                "    gl_Position = uMVPMatrix * vPosition; "
+                "}";
+const static GLint vs_SolidColorSize = sizeof(vs_SolidColor);
+
+const static GLchar * fs_SolidColor =
+                "precision mediump float;"
+                "uniform vec4 uColor;"
+                "void main() {"
+                "  gl_FragColor = uColor;" //"  gl_FragColor = vec4(1,0,0,1);" +
+                "}";
+const static GLint fs_SolidColorSize = sizeof(fs_SolidColor);
+
+
+static GLint loadShader(GLenum type, const GLchar ** shaderCode, const GLint * shaderCodeSize) {
+    GLuint shader = glCreateShader(type);
+
+    glShaderSource(shader, 1, shaderCode, shaderCodeSize);
+    glCompileShader(shader);
+
+    return shader;
+}
 
 void init() {
     mLastTime = std::chrono::high_resolution_clock::now();
@@ -29,7 +58,7 @@ void onPause() {
 }
 
 void onResume() {
-
+    mLastTime = std::chrono::high_resolution_clock::now();
 }
 
 extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_init
@@ -63,20 +92,18 @@ extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLR
 }
 
 void drawTile(Tile * tile, float m[]) {
-    /*GLint mPositionHandle = glGetAttribLocation(RiGraphicTools.sp_SolidColor, "vPosition");
-    GLES20.glEnableVertexAttribArray(mPositionHandle)
-    GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, tile.renderVertBuffer)
+    GLuint mPositionHandle = (GLuint) glGetAttribLocation(sp_SolidColor, "vPosition");
+    glEnableVertexAttribArray(mPositionHandle);
+    glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX, GL_FLOAT, GL_FALSE, vertexStride, tile->renderVertBuffer);
 
-    GLint colorHandle = glGetUniformLocation(RiGraphicTools.sp_SolidColor, "uColor")
-    glUniform4fv(colorHandle, 1, (*tile).renderColorBuffer, 0);
+    GLint colorHandle = glGetUniformLocation(sp_SolidColor, "uColor");
+    glUniform4fv(colorHandle, 1, tile->renderColorBuffer);
 
-    val mtrxhandle = GLES20.glGetUniformLocation(RiGraphicTools.sp_SolidColor, "uMVPMatrix")
-    GLES20.glUniformMatrix4fv(mtrxhandle, 1, false, m, 0)
-    GLES20.glDrawElements(GLES20.GL_TRIANGLES, inds.size, GLES20.GL_UNSIGNED_SHORT, tile.renderDrawListBuffer)
-    GLES20.glDisableVertexAttribArray(mPositionHandle)*/
+    GLint mtrxhandle = glGetUniformLocation(sp_SolidColor, "uMVPMatrix");
+    glUniformMatrix4fv(mtrxhandle, 1, GL_FALSE, m);
+    glDrawElements(GL_TRIANGLES, indsSize, GL_UNSIGNED_SHORT, tile->renderDrawListBuffer);
+    glDisableVertexAttribArray(mPositionHandle);
 }
-
-//var windowsLauncher = WindowsLauncher(this)
 
 void on_surface_created() {
 
