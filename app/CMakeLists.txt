@@ -10,6 +10,8 @@ cmake_minimum_required(VERSION 3.4.1)
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
+include_directories( src/main/cpp/ )
+
 add_library( # Sets the name of the library.
              native-lib
 
@@ -19,23 +21,17 @@ add_library( # Sets the name of the library.
              # Provides a relative path to your source file(s).
              src/main/cpp/native-lib.cpp )
 
-             add_library( # Sets the name of the library.
-                          GLRender
+add_library( GLRender
+             SHARED
+             src/main/cpp/GLRender.cpp )
 
-                          # Sets the library as a shared library.
-                          SHARED
+add_library( AccExpInterpolator
+             SHARED
+             src/main/cpp/AccExpInterpolator.cpp )
 
-                          # Provides a relative path to your source file(s).
-                          src/main/cpp/GLRender.cpp )
-
-                          add_library( # Sets the name of the library.
-                                                    WindowsLauncher
-
-                                                    # Sets the library as a shared library.
-                                                    SHARED
-
-                                                    # Provides a relative path to your source file(s).
-                                                    src/main/cpp/WindowsLauncher.cpp )
+add_library( WindowsLauncher
+             SHARED
+             src/main/cpp/WindowsLauncher.cpp )
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -46,6 +42,8 @@ add_library( # Sets the name of the library.
 find_library( # Sets the name of the path variable.
               log-lib
               GLESv2
+
+              AccExpInterpolator
 
               # Specifies the name of the NDK library that
               # you want CMake to locate.
@@ -60,3 +58,5 @@ target_link_libraries(native-lib
 target_link_libraries(GLRender
                         EGL
                         GLESv2)
+target_link_libraries(WindowsLauncher
+                        AccExpInterpolator)

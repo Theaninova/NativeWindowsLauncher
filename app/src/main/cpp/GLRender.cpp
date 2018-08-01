@@ -20,33 +20,19 @@ extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLR
     on_draw_frame();
 }
 
-float mtrxProjection[16];
-float mtrxView[16];
-float mtrxProjectionAndView[16];
+void drawTile(Tile * tile, float m[]) {
+    /*GLint mPositionHandle = glGetAttribLocation(RiGraphicTools.sp_SolidColor, "vPosition");
+    GLES20.glEnableVertexAttribArray(mPositionHandle)
+    GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, tile.renderVertBuffer)
 
-float dxTouch = 0.0f;
-float dyTouch = 0.0f;
+    GLint colorHandle = glGetUniformLocation(RiGraphicTools.sp_SolidColor, "uColor")
+    glUniform4fv(colorHandle, 1, (*tile).renderColorBuffer, 0);
 
-float xTouchPos = 0.0f;
-float yTouchPos = 0.0f;
-
-//glGrid units per second per second
-float xVelocityTouch = 0.0f;
-float yVelocityTouch = 0.0f;
-bool fingerDown = false;
-
-float glGrid[] = { -1.0f, 1.0f, 1.0f, -1.0f };
-
-int COORDS_PER_VERTEX = 3;
-int vertexStride = COORDS_PER_VERTEX * 4;
-short inds[] ={ 0, 1, 2, 0, 2, 3 };
-
-float mScreenWidth = 1080.0f;
-float mScreenHeight = 1920.0f;
-float mAspectRatio = 16.0f / 9.0f;
-
-long mLastTime = 0;
-int mProgram;
+    val mtrxhandle = GLES20.glGetUniformLocation(RiGraphicTools.sp_SolidColor, "uMVPMatrix")
+    GLES20.glUniformMatrix4fv(mtrxhandle, 1, false, m, 0)
+    GLES20.glDrawElements(GLES20.GL_TRIANGLES, inds.size, GLES20.GL_UNSIGNED_SHORT, tile.renderDrawListBuffer)
+    GLES20.glDisableVertexAttribArray(mPositionHandle)*/
+}
 
 //var windowsLauncher = WindowsLauncher(this)
 
