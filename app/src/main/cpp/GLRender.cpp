@@ -161,12 +161,14 @@ void on_surface_changed(int width, int height) {
 }
 
 void on_draw_frame(float mxTouchPos, float myTouchPos, float mxVelocityTouch, float myVelocityTouch, float mdxTouch, float mdyTouch, bool mfingerDown) {
-    sharedValues.xTouchPos = mxTouchPos;
-    sharedValues.yTouchPos = myTouchPos;
-    sharedValues.xVelocityTouch = mxVelocityTouch;
-    sharedValues.yVelocityTouch = myVelocityTouch;
-    sharedValues.dxTouch = mdxTouch;
-    sharedValues.dyTouch = mdyTouch;
+    if (mfingerDown) {
+        sharedValues.xTouchPos = mxTouchPos;
+        sharedValues.yTouchPos = myTouchPos;
+        sharedValues.xVelocityTouch = mxVelocityTouch;
+        sharedValues.yVelocityTouch = myVelocityTouch;
+        sharedValues.dxTouch = mdxTouch;
+        sharedValues.dyTouch = mdyTouch;
+    }
     sharedValues.fingerDown = mfingerDown;
 
     auto now = std::chrono::high_resolution_clock::now();

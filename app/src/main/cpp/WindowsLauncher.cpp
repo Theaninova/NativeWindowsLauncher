@@ -258,7 +258,7 @@ void overscrollEffect(bool top, double elapsed) {
     else
         scrollDist = gridOverscrollHeight + (todoOverscrollDist * (float) overscrollInterpolator.getMulti(overscrollElapsed, overscrollDuration));
 
-    if (overscrollElapsed <= 0) {
+    if (overscrollElapsed <= 0.0) {
         todoOverscrollDist = 0.0f;
         if (top)
             scrollDist = 0.0f;
@@ -311,7 +311,7 @@ void handleTouch(double elapsed) {
         } else if (scrollDist < gridOverscrollHeight && parent->yVelocityTouch < 1.0) {
             overscrollEffect(false, elapsed);
         } else {
-            if (scrollDist > 0 || scrollDist < gridOverscrollHeight)
+            if (scrollDist > 0.0f || scrollDist < gridOverscrollHeight)
                 parent->yVelocityTouch -= (float) elapsed * (parent->yVelocityTouch / 0.04f);
             else
                 parent->yVelocityTouch -= (float) elapsed * (parent->yVelocityTouch / 0.4f);
