@@ -3,6 +3,7 @@
 //
 
 #include "GLRender.h"
+#include "Matrix.h"
 #include <jni.h>
 #include <string>
 
@@ -34,8 +35,11 @@ static GLint loadShader(GLenum type, const GLchar ** shaderCode, const GLint * s
     return shader;
 }
 
-void init() {
+void init(int mStatusBarHeightPixels, int mNavBarHeightPixels) {
     mLastTime = std::chrono::high_resolution_clock::now();
+
+    statusBarHeightPixels = mStatusBarHeightPixels;
+    navBarHeightPixels = mNavBarHeightPixels;
 
     Parent me;
     me.yVelocityTouch = &yVelocityTouch;
@@ -62,8 +66,8 @@ void onResume() {
 }
 
 extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_init
-        (JNIEnv * env, jclass cls) {
-    init();
+        (JNIEnv * env, jclass cls, int mStatusBarHeightPixels, int mNavBarHeightPixels) {
+    init(mStatusBarHeightPixels, mNavBarHeightPixels);
 }
 
 extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_on_1surface_1created
@@ -73,7 +77,7 @@ extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLR
 
 extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_on_1surface_1changed
         (JNIEnv * env, jclass cls, jint width, jint height) {
-    on_surface_changed();
+    on_surface_changed(width, height);
 }
 
 extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_on_1draw_1frame
@@ -105,15 +109,55 @@ void drawTile(Tile * tile, float m[]) {
     glDisableVertexAttribArray(mPositionHandle);
 }
 
+void render(float m[]) {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    for (int i = 0; i < tiles.size(); i++) {
+        drawTile(&tiles[i], m);
+    }
+}
+
 void on_surface_created() {
 
     glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
 }
 
-void on_surface_changed() {
+void on_surface_changed(int width, int height) {
+    mScreenWidth = (float) width;
+    mScreenHeight = (float) height;
 
+    mAspectRatio = mScreenHeight / mScreenWidth;
+
+    glGrid[2] = -(((glGrid[1] - glGrid[0]) * mAspectRatio) / 2);
+    glGrid[3] = -glGrid[2];
+
+    statusBarHeightPercentage = statusBarHeightPixels / mScreenHeight;
+    navBarHeightPercentage = navBarHeightPixels / mScreenHeight;
+
+    cacheTileValues();
+
+    glViewport(0, 0, (GLsizei) mScreenWidth, (GLsizei) mScreenHeight);
+
+    for(int i = 0; i < 16; i++) {
+        mtrxProjection[i] = 0.0f;
+        mtrxView[i] = 0.0f;
+        mtrxProjectionAndView[i] = 0.0f;
+    }
+
+    orthoM(mtrxProjection, 0, glGrid[0], glGrid[1], glGrid[3], glGrid[2], 1.0f, -1.0f);
+    setLookAtM(mtrxView, 0, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    multiplyMM(mtrxProjectionAndView, mtrxProjection, mtrxView);
 }
 
 void on_draw_frame() {
-    glClear(GL_COLOR_BUFFER_BIT);
+    auto now = std::chrono::high_resolution_clock::now();
+    if (now == mLastTime) return;
+
+    std::chrono::milliseconds elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - mLastTime);
+
+    update(elapsed.count() / 1000.0);
+
+    render(mtrxProjectionAndView);
+
+    mLastTime = now;
 }

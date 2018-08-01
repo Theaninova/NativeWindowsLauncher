@@ -33,6 +33,10 @@ add_library( WindowsLauncher
              SHARED
              src/main/cpp/WindowsLauncher.cpp )
 
+add_library( Matrix
+             SHARED
+             src/main/cpp/Matrix.cpp )
+
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
 # default, you only need to specify the name of the public NDK library
@@ -44,6 +48,7 @@ find_library( # Sets the name of the path variable.
               GLESv2
 
               AccExpInterpolator
+              Matrix
 
               # Specifies the name of the NDK library that
               # you want CMake to locate.
@@ -58,6 +63,7 @@ target_link_libraries(native-lib
 target_link_libraries(GLRender
                         EGL
                         GLESv2
-                        WindowsLauncher)
+                        WindowsLauncher
+                        Matrix)
 target_link_libraries(WindowsLauncher
                         AccExpInterpolator)

@@ -1,10 +1,10 @@
 package de.wulkanat.www.nativewindowslauncher
 
-class GLRenderNative {
+class GLRenderNative(statusBarHeight: Int, navBarHeight: Int) {
     init {
         System.loadLibrary("GLRender")
 
-        init()
+        init(statusBarHeight, navBarHeight)
     }
 
     external fun on_surface_created()
@@ -13,7 +13,7 @@ class GLRenderNative {
 
     external fun on_draw_frame()
 
-    external fun init()
+    external fun init(mStatusBarHeightPixels: Int, mNavBarHeightPixels: Int)
 
     external fun onPause()
 
