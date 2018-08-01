@@ -111,8 +111,8 @@ void drawTile(Tile * tile, float m[]) {
 void render(float m[]) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (int i = 0; i < tiles.size(); i++) {
-        drawTile(&tiles[i], m);
+    for (int i = 0; i < sharedValues.tiles.size(); i++) {
+        drawTile(&sharedValues.tiles[i], m);
     }
 }
 
@@ -142,8 +142,8 @@ void on_surface_changed(int width, int height) {
     sharedValues.glGrid[2] = -1.0f * (((sharedValues.glGrid[1] - sharedValues.glGrid[0]) * mAspectRatio) / 2.0f);
     sharedValues.glGrid[3] = -1.0f * sharedValues.glGrid[2];
 
-    statusBarHeightPercentage = statusBarHeightPixels / mScreenHeight;
-    navBarHeightPercentage = navBarHeightPixels / mScreenHeight;
+    sharedValues.statusBarHeightPercentage = statusBarHeightPixels / mScreenHeight;
+    sharedValues.navBarHeightPercentage = navBarHeightPixels / mScreenHeight;
 
     cacheTileValues();
 

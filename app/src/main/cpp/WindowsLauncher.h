@@ -13,6 +13,28 @@
 
 #endif //NATIVEWINDOWSLAUNCHER_WINDOWSLAUNCHER_H
 
+struct Tile {
+    int posX;
+    int posY;
+    int spanX;
+    int spanY;
+
+    //TODO: Float, short buffer
+
+    const static size_t vertBufferSize = 3 * 4;
+    const static size_t drawListBufferSize = 6;
+    const static size_t colorBufferSize = 4;
+    float vertBuffer[vertBufferSize];
+    short drawListBuffer[drawListBufferSize];
+    float colorBuffer[colorBufferSize];
+
+    float renderVertBuffer[vertBufferSize];
+    short renderDrawListBuffer[drawListBufferSize];
+    float renderColorBuffer[colorBufferSize];
+
+    float currentZoom = 0.0f;
+};
+
 //shared variables (Pointers)
 struct SharedValues {
     float yVelocityTouch = 0.0f;
@@ -26,14 +48,17 @@ struct SharedValues {
     float glGrid[4] = { -1.0f, 1.0f, -1.0f, 1.0f};
     const static int indsSize = 6;
     short inds[indsSize] ={ 0, 1, 2, 0, 2, 3 };
+
+    float statusBarHeightPercentage = 0.0f;
+    float navBarHeightPercentage = 0.0f;
+
+    std::vector<Tile> tiles;
 };
 
 SharedValues * parent;
 
-//Local variables
+//Constansts ONLY
 const float enterDuration = 0.62; //0.6
-//val enterRowZoomDifference = 2.0f
-//val enterRowZoomOffset = 0.01
 const int relativeEnterRowZoomOffsetsSize = 7;
 const float relativeEnterRowZoomOffsets[relativeEnterRowZoomOffsetsSize] = {0.01f, //0.01
                                                0.03f, 0.01f, //0.03, 0.01
@@ -74,77 +99,13 @@ const float editModeSelectedZoom = -0.05f;
 const float editModeAlpha = 0.8f;
 const float editModeSelectedAlpha = 1.0f;
 
-struct Tile {
-    int posX;
-    int posY;
-    int spanX;
-    int spanY;
-
-    //TODO: Float, short buffer
-
-    const static size_t vertBufferSize = 3 * 4;
-    const static size_t drawListBufferSize = 6;
-    const static size_t colorBufferSize = 4;
-    float vertBuffer[vertBufferSize];
-    short drawListBuffer[drawListBufferSize];
-    float colorBuffer[colorBufferSize];
-
-    float renderVertBuffer[vertBufferSize];
-    short renderDrawListBuffer[drawListBufferSize];
-    float renderColorBuffer[colorBufferSize];
-
-    float currentZoom = 0.0f;
-};
-
-std::vector<Tile> tiles;
-
 const int gridWidth = 6;
 const float leftSideMargin = 0.0104167f * 2.0f; //0.01041 6 Period  Measured
 const float rightSideMargin = 0.0118056f * 2.0f;//0.01180 5 Period  Measured
 const float tilesMargin = 0.0097222f * 2.0f;    //0.0097  2 Period  Measured
 const float topMargin = tilesMargin;
-float statusBarHeightPercentage = 0.0f;
-float statusBarHeight = 0.0f;
 
-float navBarHeightPercentage = 0.0f;
-float navBarHeight = 0.0f;
-float overscrollDist = 0.2090278f * 2.0f - topMargin; //0,20902 / Period
 const double overscrollDuration = 0.5;
-float todoOverscrollDist = 0.0f;
-double overscrollElapsed = 0.0;
-
-float gridOverscrollHeight = 0.0f;
-float gridHeight = 0.0f;
-
-int gridHeightSpan = 0;
-
-float scrollDist = 0.0f;
-
-float tileSizeCache = 0.0f;
-float tileXPosChache[gridWidth];
-float tileAndMarginCache = 0.0f;
-
-
-int startTileIndex = 0;
-float rowsOnScreen = 0.0f;
-double animProgress = 0.0;
-double enterTemporalOffsets[relativeEnterRowZoomOffsetsSize];
-
-bool exiting = false;
-bool entering = false;
-
-float tapTolerance = 0.0005f;
-float tapPosition[2];
-bool tapInitiated = false;
-double timeSinceTap = 0.0;
-
-float exitStartPos = 0.0f;
-double exitAnimTime = 0.0;
-int exitTapTileLoc[2];
-
-bool appDrawer = false;
-bool editMode = false;
-int editModeSelectedTile = 0;
 
 //Fuctions for external use
 

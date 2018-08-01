@@ -9,6 +9,46 @@ AccExpInterpolator fadeInInterpolator = AccExpInterpolator(fadeInNum1, fadeInNum
 AccExpInterpolator fadeOutInterpolator = AccExpInterpolator(fadeOutNum1, fadeOutNum2, fadeOutNum3, fadeOutLoc);
 AccExpInterpolator overscrollInterpolator = AccExpInterpolator(overscrollNum1, overscrollNum2, overscrollNum3, overscrollLoc);
 
+
+float statusBarHeight = 0.0f;
+
+float navBarHeight = 0.0f;
+float overscrollDist = 0.2090278f * 2.0f - topMargin; //0,20902 / Period
+float todoOverscrollDist = 0.0f;
+double overscrollElapsed = 0.0;
+
+float gridOverscrollHeight = 0.0f;
+float gridHeight = 0.0f;
+
+int gridHeightSpan = 0;
+
+float scrollDist = 0.0f;
+
+float tileSizeCache = 0.0f;
+float tileXPosChache[gridWidth];
+float tileAndMarginCache = 0.0f;
+
+int startTileIndex = 0;
+float rowsOnScreen = 0.0f;
+double animProgress = 0.0;
+double enterTemporalOffsets[relativeEnterRowZoomOffsetsSize];
+
+bool exiting = false;
+bool entering = false;
+
+float tapTolerance = 0.0005f;
+float tapPosition[2];
+bool tapInitiated = false;
+double timeSinceTap = 0.0;
+
+float exitStartPos = 0.0f;
+double exitAnimTime = 0.0;
+int exitTapTileLoc[2];
+
+bool appDrawer = false;
+bool editMode = false;
+int editModeSelectedTile = 0;
+
 /*
  * CALL THIS FIRST
  */
@@ -18,7 +58,7 @@ void addTile(Tile tile) {
         gridHeightSpan = tile.posY + tile.spanY;
         gridHeight = (float) gridHeightSpan * tileAndMarginCache;
     }
-    tiles.push_back(tile);
+    parent->tiles.push_back(tile);
 }
 
 Tile initTile(int x, int y, int sx, int sy) {
@@ -79,24 +119,24 @@ void windows_launcher_init(SharedValues * mParent) {
  * DO NOT OPTIMIZE MEMORY USAGE. FUNCTION WILL RUN SIMULTANEOUSLY IN MULTIPLE THREADS.
  */
 void calculateTile(int tile, float origZoom, float color[4]) {
-    memcpy(tiles[tile].colorBuffer, color, sizeof(tiles[tile].colorBuffer));
+    memcpy(parent->tiles[tile].colorBuffer, color, sizeof(parent->tiles[tile].colorBuffer));
 
     float additionalZoom = 0.0f;
     if (editMode) {
         additionalZoom = editModeZoom;
-        tiles[tile].colorBuffer[3] = editModeAlpha;
+        parent->tiles[tile].colorBuffer[3] = editModeAlpha;
         if (tile == editModeSelectedTile) {
             additionalZoom = editModeSelectedZoom;
-            tiles[tile].colorBuffer[3] = editModeSelectedAlpha;
+            parent->tiles[tile].colorBuffer[3] = editModeSelectedAlpha;
         }
     }
 
     float zoom = origZoom + additionalZoom;
 
-    float yPos = (parent->glGrid[2] + topMargin + (float) tiles[tile].posY * tileAndMarginCache + scrollDist + statusBarHeight) * zoom;
-    float xPos = tileXPosChache[tiles[tile].posX] * zoom;
-    float xSize = (tileSizeCache + (float) (tiles[tile].spanX - 1) * tileAndMarginCache) * zoom;
-    float ySize = (tileSizeCache + (float) (tiles[tile].spanY - 1) * tileAndMarginCache) * zoom;
+    float yPos = (parent->glGrid[2] + topMargin + (float) parent->tiles[tile].posY * tileAndMarginCache + scrollDist + statusBarHeight) * zoom;
+    float xPos = tileXPosChache[parent->tiles[tile].posX] * zoom;
+    float xSize = (tileSizeCache + (float) (parent->tiles[tile].spanX - 1) * tileAndMarginCache) * zoom;
+    float ySize = (tileSizeCache + (float) (parent->tiles[tile].spanY - 1) * tileAndMarginCache) * zoom;
 
     float zPos = 0.5f + ((1.0f / zoom) / 2.0f);
     if (zoom < 1.0f)
@@ -109,9 +149,9 @@ void calculateTile(int tile, float origZoom, float color[4]) {
             xPos, yPos + ySize, zPos
     };
 
-    memcpy(tiles[tile].vertBuffer, verticies, sizeof(tiles[tile].vertBuffer));
+    memcpy(parent->tiles[tile].vertBuffer, verticies, sizeof(parent->tiles[tile].vertBuffer));
 
-    memcpy(tiles[tile].drawListBuffer, parent->inds, sizeof(tiles[tile].drawListBuffer));
+    memcpy(parent->tiles[tile].drawListBuffer, parent->inds, sizeof(parent->tiles[tile].drawListBuffer));
 }
 
 void initEnterAnimation() {
@@ -125,8 +165,8 @@ void initEnterAnimation() {
         enterTemporalOffsets[1] = enterDuration;
     }
 
-    rowsOnScreen = abs(parent->glGrid[3] - parent->glGrid[2]) / tileAndMarginCache;
-    startTileIndex = (int) (((abs(parent->glGrid[3] - parent->glGrid[2]) - statusBarHeight - topMargin + scrollDist)) / tileAndMarginCache);
+    rowsOnScreen = std::abs(parent->glGrid[3] - parent->glGrid[2]) / tileAndMarginCache;
+    startTileIndex = (int) (((std::abs(parent->glGrid[3] - parent->glGrid[2]) - statusBarHeight - topMargin + scrollDist)) / tileAndMarginCache);
 }
 
 void initExitAnimation(int location[2]) {
@@ -136,7 +176,7 @@ void initExitAnimation(int location[2]) {
 
     memcpy(exitTapTileLoc, location, sizeof(exitTapTileLoc));
 
-    rowsOnScreen = abs(parent->glGrid[3] - parent->glGrid[2]) / tileAndMarginCache;
+    rowsOnScreen = std::abs(parent->glGrid[3] - parent->glGrid[2]) / tileAndMarginCache;
 
     float x = (exitStartPos + (float) location[1] + appTileOffset) - rowsOnScreen;
     if (x > 0) {
@@ -155,8 +195,7 @@ void performNewEnterAnimation(double progress) {
         if (progress <= enterDuration - enterTemporalOffsets[i])
             zoomCache[i] = 1.0f - ((float) fadeInInterpolator.getMulti(progress, enterDuration - enterTemporalOffsets[i]) * (1.0f - initalZoom));
 
-        if (i + 1 < relativeEnterRowZoomOffsetsSize && enterTemporalOffsets[i + 1] == enterDuration &&
-            zoomCache[i] >= initalZoom + relativeEnterRowZoomOffsets[i]/*(i.toFloat() + 1.0f) * enterRowZoomOffset*/) {
+        if (i + 1 < relativeEnterRowZoomOffsetsSize && enterTemporalOffsets[i + 1] == enterDuration && zoomCache[i] >= initalZoom + relativeEnterRowZoomOffsets[i]) {
             enterTemporalOffsets[i + 1] = enterDuration - progress;
         }
 
@@ -168,8 +207,8 @@ void performNewEnterAnimation(double progress) {
         }
     }
 
-    for (int i = 0; i < tiles.size(); i++) {
-        int tileOffset = (startTileIndex) - (tiles[i].posY + tiles[i].spanY);
+    for (int i = 0; i < parent->tiles.size(); i++) {
+        int tileOffset = (startTileIndex) - (parent->tiles[i].posY + parent->tiles[i].spanY);
         if (tileOffset < 0)
             tileOffset = 0;
         else if (tileOffset >= relativeEnterRowZoomOffsetsSize)
@@ -182,11 +221,11 @@ void performNewEnterAnimation(double progress) {
 }
 
 void performExitAnimation(double progress) {
-    for (int i = 0; i < tiles.size(); i++) {
-        if (tiles[i].posY >= exitStartPos) {
-            double tileTime = 2.0 * (exitDuration - progress - (tiles[i].posY - exitStartPos) * exitAnimTime);
+    for (int i = 0; i < parent->tiles.size(); i++) {
+        if (parent->tiles[i].posY >= exitStartPos) {
+            double tileTime = 2.0 * (exitDuration - progress - (parent->tiles[i].posY - exitStartPos) * exitAnimTime);
 
-            if (tiles[i].posX == exitTapTileLoc[0] && tiles[i].posY == exitTapTileLoc[1]) {
+            if (parent->tiles[i].posX == exitTapTileLoc[0] && parent->tiles[i].posY == exitTapTileLoc[1]) {
                 tileTime -= appTileOffset * exitAnimTime;
             }
 
@@ -210,11 +249,11 @@ void performExitAnimation(double progress) {
 
 bool tileTouched(int tile) {
     float t[] = {
-            tileXPosChache[tiles[tile].posX],
-            parent->glGrid[2] + topMargin + (float) tiles[tile].posY * tileAndMarginCache + scrollDist +
+            tileXPosChache[parent->tiles[tile].posX],
+            parent->glGrid[2] + topMargin + (float) parent->tiles[tile].posY * tileAndMarginCache + scrollDist +
             statusBarHeight,
-            tileSizeCache + (float) (tiles[tile].spanX - 1) * tileAndMarginCache,
-            tileSizeCache + (float) (tiles[tile].spanY - 1) * tileAndMarginCache
+            tileSizeCache + (float) (parent->tiles[tile].spanX - 1) * tileAndMarginCache,
+            tileSizeCache + (float) (parent->tiles[tile].spanY - 1) * tileAndMarginCache
     };
 
     return  parent->xTouchPos > t[0] &&
@@ -224,7 +263,7 @@ bool tileTouched(int tile) {
 }
 
 void onTapEvent(bool longTap) {
-    for (int i = 0; i < tiles.size(); i++) {
+    for (int i = 0; i < parent->tiles.size(); i++) {
         if (tileTouched(i)) {
             if (longTap) {
                 editMode = true;
@@ -233,7 +272,7 @@ void onTapEvent(bool longTap) {
                 if (editMode)
                     editModeSelectedTile = i;
                 else {
-                    int exitAnimParams[] = {tiles[i].posX, tiles[i].posY};
+                    int exitAnimParams[] = {parent->tiles[i].posX, parent->tiles[i].posY};
 
                     initExitAnimation(exitAnimParams);
                 }
@@ -271,7 +310,7 @@ void overscrollEffect(bool top, double elapsed) {
 }
 
 void handleTouch(double elapsed) {
-    if (abs(parent->xTouchPos - tapPosition[0]) <= tapTolerance && abs(parent->yTouchPos - tapPosition[1]) <= tapTolerance) {
+    if (std::abs(parent->xTouchPos - tapPosition[0]) <= tapTolerance && std::abs(parent->yTouchPos - tapPosition[1]) <= tapTolerance) {
         if (parent->fingerDown) {
             tapInitiated = true;
             if (timeSinceTap > longTapDuraion)
@@ -326,7 +365,7 @@ void handleTouch(double elapsed) {
 }
 
 void cacheTileValues() {
-    tileSizeCache = ((parent->glGrid[1] - parent->glGrid[0]) - leftSideMargin - rightSideMargin - (gridWidth - 1) * tilesMargin) / gridWidth;
+    tileSizeCache = ((parent->glGrid[1] - parent->glGrid[0]) - leftSideMargin - rightSideMargin - (((float) gridWidth - 1.0f) * tilesMargin)) / ((float) gridWidth);
 
     tileAndMarginCache = tileSizeCache + tilesMargin;
 
@@ -336,11 +375,11 @@ void cacheTileValues() {
         xPos += tileAndMarginCache;
     }
 
-    statusBarHeight = (parent->glGrid[3] - parent->glGrid[2]) * statusBarHeightPercentage;
+    statusBarHeight = (parent->glGrid[3] - parent->glGrid[2]) * parent->statusBarHeightPercentage;
 
     overscrollDist = 0.2090278f * 2 - topMargin - statusBarHeight;
 
-    navBarHeight = (parent->glGrid[3] - parent->glGrid[2]) * navBarHeightPercentage;
+    navBarHeight = (parent->glGrid[3] - parent->glGrid[2]) * parent->navBarHeightPercentage;
 
     gridHeight = (float) gridHeightSpan * tileAndMarginCache;
     gridOverscrollHeight = (gridHeight - (parent->glGrid[3] - parent->glGrid[2] - statusBarHeight - navBarHeight)) * -1.0f;
@@ -354,7 +393,7 @@ void update(double elapsed) {
             initEnterAnimation();
             performNewEnterAnimation(animProgress);
         } else {
-            for (int i = 0; i < tiles.size(); i++) {
+            for (int i = 0; i < parent->tiles.size(); i++) {
                 //TODO: calc in seperate Thread
                 float color[] = {0.24313f, 0.396078f, 1.0f, 1.0f};
                 calculateTile(i, 1.0f, color);
@@ -378,10 +417,10 @@ void update(double elapsed) {
 
     //TODO: multithreading, check for GPU finished
 
-    for (int i = 0; i < tiles.size(); i++) {
+    for (int i = 0; i < parent->tiles.size(); i++) {
         //Swap buffers in tiles
-        memcpy(tiles[i].renderDrawListBuffer, tiles[i].drawListBuffer, sizeof(tiles[i].renderDrawListBuffer));
-        memcpy(tiles[i].renderVertBuffer, tiles[i].vertBuffer, sizeof(tiles[i].renderVertBuffer));
-        memcpy(tiles[i].renderColorBuffer, tiles[i].colorBuffer, sizeof(tiles[i].renderColorBuffer));
+        memcpy(parent->tiles[i].renderDrawListBuffer, parent->tiles[i].drawListBuffer, sizeof(parent->tiles[i].renderDrawListBuffer));
+        memcpy(parent->tiles[i].renderVertBuffer, parent->tiles[i].vertBuffer, sizeof(parent->tiles[i].renderVertBuffer));
+        memcpy(parent->tiles[i].renderColorBuffer, parent->tiles[i].colorBuffer, sizeof(parent->tiles[i].renderColorBuffer));
     }
 }
