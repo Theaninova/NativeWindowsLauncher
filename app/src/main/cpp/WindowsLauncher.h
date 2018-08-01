@@ -50,6 +50,8 @@ struct SharedValues {
     float statusBarHeightPercentage = 0.0f;
     float navBarHeightPercentage = 0.0f;
 
+    bool editMode = false;
+
     std::vector<Tile> tiles;
 };
 

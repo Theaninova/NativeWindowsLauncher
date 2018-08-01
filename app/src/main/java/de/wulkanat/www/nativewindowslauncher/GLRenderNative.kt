@@ -54,4 +54,6 @@ class GLRenderNative(mContext: Context, statusBarHeight: Int, navBarHeight: Int)
     external fun onPause()
 
     external fun onResume()
+
+    external fun onBackPressed()
 }

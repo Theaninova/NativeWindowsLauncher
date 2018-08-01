@@ -47,7 +47,6 @@ double exitAnimTime = 0.0;
 int exitTapTileLoc[2];
 
 bool appDrawer = false;
-bool editMode = false;
 int editModeSelectedTile = 0;
 
 /*
@@ -123,7 +122,7 @@ void calculateTile(int tile, float origZoom, float color[4]) {
     memcpy(parent->tiles[tile].colorBuffer, color, sizeof(parent->tiles[tile].colorBuffer));
 
     float additionalZoom = 0.0f;
-    if (editMode) {
+    if (parent->editMode) {
         additionalZoom = editModeZoom;
         parent->tiles[tile].colorBuffer[3] = editModeAlpha;
         if (tile == editModeSelectedTile) {
@@ -267,10 +266,10 @@ void onTapEvent(bool longTap) {
     for (int i = 0; i < parent->tiles.size(); i++) {
         if (tileTouched(i)) {
             if (longTap) {
-                editMode = true;
+                parent->editMode = true;
                 editModeSelectedTile = i;
             } else {
-                if (editMode)
+                if (parent->editMode)
                     editModeSelectedTile = i;
                 else {
                     int exitAnimParams[] = {parent->tiles[i].posX, parent->tiles[i].posY};

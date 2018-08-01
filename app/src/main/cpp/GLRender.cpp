@@ -94,6 +94,11 @@ extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLR
     onResume();
 }
 
+extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_onBackPressed
+        (JNIEnv * env, jclass cls) {
+    sharedValues.editMode = false;
+}
+
 void drawTile(Tile * tile, float m[]) {
     GLuint mPositionHandle = (GLuint) glGetAttribLocation(sp_SolidColor, "vPosition");
     glEnableVertexAttribArray(mPositionHandle);
