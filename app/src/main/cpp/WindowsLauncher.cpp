@@ -162,7 +162,7 @@ void initEnterAnimation() {
 
     enterTemporalOffsets[0] = 0.0f;
     for (int i = 1; i < relativeEnterRowZoomOffsetsSize; i++) {
-        enterTemporalOffsets[1] = enterDuration;
+        enterTemporalOffsets[i] = enterDuration + 10.0;
     }
 
     rowsOnScreen = std::abs(parent->glGrid[3] - parent->glGrid[2]) / tileAndMarginCache;
@@ -193,9 +193,9 @@ void performNewEnterAnimation(double progress) {
 
     for (int i = 0; i < relativeEnterRowZoomOffsetsSize; i++) {
         if (progress <= enterDuration - enterTemporalOffsets[i])
-            zoomCache[i] = 1.0f - ((float) fadeInInterpolator.getMulti(progress, enterDuration - enterTemporalOffsets[i]) * (1.0f - initalZoom));
+            zoomCache[i] = 1.0f - (float) (fadeInInterpolator.getMulti(progress, enterDuration - enterTemporalOffsets[i]) * (1.0f - initalZoom));
 
-        if (i + 1 < relativeEnterRowZoomOffsetsSize && enterTemporalOffsets[i + 1] == enterDuration && zoomCache[i] >= initalZoom + relativeEnterRowZoomOffsets[i]) {
+        if ((i + 1 < relativeEnterRowZoomOffsetsSize) && (enterTemporalOffsets[i + 1] >= enterDuration) && (zoomCache[i] >= initalZoom + relativeEnterRowZoomOffsets[i])) {
             enterTemporalOffsets[i + 1] = enterDuration - progress;
         }
 
@@ -208,7 +208,7 @@ void performNewEnterAnimation(double progress) {
     }
 
     for (int i = 0; i < parent->tiles.size(); i++) {
-        int tileOffset = (startTileIndex) - (parent->tiles[i].posY + parent->tiles[i].spanY);
+        int tileOffset = startTileIndex - (parent->tiles[i].posY + parent->tiles[i].spanY);
         if (tileOffset < 0)
             tileOffset = 0;
         else if (tileOffset >= relativeEnterRowZoomOffsetsSize)
