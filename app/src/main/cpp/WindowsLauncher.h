@@ -16,6 +16,12 @@
 //shared variables (Pointers)
 struct Parent {
     float * yVelocityTouch;
+    float * xVelocityTouch;
+    float * dyTouch;
+    float * dxTouch;
+    float * xTouchPos;
+    float * yTouchPos;
+    bool * fingerDown;
 
     float * glGrid[4];
     int * indsSize;
@@ -140,6 +146,8 @@ bool appDrawer = false;
 bool editMode = false;
 int editModeSelectedTile = 0;
 
-void cacheTileValues();
+//Fuctions for external use
 
 void init();
+void update(double elapsed);
+void cacheTileValues();
