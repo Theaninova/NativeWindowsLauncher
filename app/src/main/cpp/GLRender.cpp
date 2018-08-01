@@ -5,6 +5,30 @@
 #include "GLRender.h"
 #include <jni.h>
 
+void init() {
+    mLastTime = std::chrono::high_resolution_clock::now();
+
+    Parent me;
+    me.yVelocityTouch = &yVelocityTouch;
+    me.xVelocityTouch = &xVelocityTouch;
+    me.dyTouch = &dyTouch;
+    me.dxTouch = &dxTouch;
+    me.xTouchPos = &xTouchPos;
+    me.yTouchPos = &yTouchPos;
+    me.fingerDown = &fingerDown;
+
+    me.glGrid = &glGrid;
+    me.indsSize = &indsSize;
+    me.inds = &inds;
+
+    windows_launcher_init(me);
+}
+
+extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_init
+        (JNIEnv * env, jclass cls) {
+    init();
+}
+
 extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_on_1surface_1created
         (JNIEnv * env, jclass cls) {
     on_surface_created();
@@ -37,6 +61,7 @@ void drawTile(Tile * tile, float m[]) {
 //var windowsLauncher = WindowsLauncher(this)
 
 void on_surface_created() {
+
     glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
 }
 

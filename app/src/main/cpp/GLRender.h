@@ -4,6 +4,7 @@
 #pragma once
 
 #include <GLES2/gl2.h>
+#include <chrono>
 #include "WindowsLauncher.h"
 
 #ifndef NATIVEWINDOWSLAUNCHER_GLRENDER_H
@@ -30,13 +31,14 @@ float glGrid[] = { -1.0f, 1.0f, 1.0f, -1.0f };
 
 int COORDS_PER_VERTEX = 3;
 int vertexStride = COORDS_PER_VERTEX * 4;
-short inds[] ={ 0, 1, 2, 0, 2, 3 };
+const int indsSize = 6;
+short inds[indsSize] ={ 0, 1, 2, 0, 2, 3 };
 
 float mScreenWidth = 1080.0f;
 float mScreenHeight = 1920.0f;
 float mAspectRatio = 16.0f / 9.0f;
 
-long mLastTime = 0;
+std::chrono::high_resolution_clock::time_point mLastTime;
 int mProgram;
 
 void on_surface_created();

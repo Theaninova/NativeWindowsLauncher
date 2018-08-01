@@ -23,9 +23,9 @@ struct Parent {
     float * yTouchPos;
     bool * fingerDown;
 
-    float * glGrid[4];
-    int * indsSize;
-    short * inds[6];
+    float (* glGrid)[4];
+    const int * indsSize;
+    short (* inds)[6];
 };
 
 Parent parent;
@@ -148,6 +148,6 @@ int editModeSelectedTile = 0;
 
 //Fuctions for external use
 
-void init();
+void windows_launcher_init(Parent mParent);
 void update(double elapsed);
 void cacheTileValues();

@@ -32,7 +32,7 @@ Tile initTile(int x, int y, int sx, int sy) {
     return out;
 }
 
-void init(Parent mParent) {
+void windows_launcher_init(Parent mParent) {
     parent = mParent;
 
     addTile(initTile(0, 0, 1, 1));

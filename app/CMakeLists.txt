@@ -57,6 +57,7 @@ target_link_libraries(native-lib
                        ${log-lib})
 target_link_libraries(GLRender
                         EGL
-                        GLESv2)
+                        GLESv2
+                        WindowsLauncher)
 target_link_libraries(WindowsLauncher
                         AccExpInterpolator)
