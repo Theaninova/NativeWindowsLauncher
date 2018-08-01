@@ -298,6 +298,12 @@ void scroll(double elapsed, float divideBy) {
         else if (scrollType == 1 && hScrollDist >= 0 && hScrollDist <= parent->glGrid[1] - parent->glGrid[0] ) {
             hScrollDist -= parent->dxTouch;
             appDrawer = (hScrollDist > (parent->glGrid[1] - parent->glGrid[0]) / 2);
+
+            if (parent->xVelocityTouch < -1.0) {
+                appDrawer = true;
+            } else if (parent->xVelocityTouch > 1.0) {
+                appDrawer = false;
+            }
         }
 
         if (hScrollDist < 0) {
@@ -364,7 +370,7 @@ void handleTouch(double elapsed) {
         }
     } else if (!parent->fingerDown && scrollType == 1) {
         openCloseAppDrawer(elapsed);
-    } else if (!parent->fingerDown && scrollType == 0 && parent->yVelocityTouch < 1.0) {
+    } else if (!parent->fingerDown && scrollType == 0) {
         scrollType = -1;
     }
 

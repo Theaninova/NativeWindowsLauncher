@@ -79,7 +79,7 @@ const double overscrollNum2 = 1.0;
 const double overscrollNum3 = 0.0;
 double overscrollLoc[] = { 0.71, 0.25 };
 
-const double drawerOpenDuration = 1.5;
+const double drawerOpenDuration = 1.0;
 const double drawerOpenNum1 = 0.0;
 const double drawerOpenNum2 = 0.4; //0.3
 const double drawerOpenNum3 = 7.2; //7.2
