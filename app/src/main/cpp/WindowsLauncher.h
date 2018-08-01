@@ -23,9 +23,9 @@ struct Parent {
     float * yTouchPos;
     bool * fingerDown;
 
-    float (* glGrid)[4];
+    float * glGrid;
     const int * indsSize;
-    short (* inds)[6];
+    short * inds;
 };
 
 Parent parent;

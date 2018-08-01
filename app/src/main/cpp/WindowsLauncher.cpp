@@ -79,7 +79,7 @@ void windows_launcher_init(Parent mParent) {
  * DO NOT OPTIMIZE MEMORY USAGE. FUNCTION WILL RUN SIMULTANEOUSLY IN MULTIPLE THREADS.
  */
 void calculateTile(int tile, float origZoom, float color[4]) {
-    memcpy(tiles[tile].colorBuffer, color, tiles[tile].colorBufferSize);
+    memcpy(tiles[tile].colorBuffer, color, sizeof(tiles[tile].colorBuffer));
 
     float additionalZoom = 0.0f;
     if (editMode) {
@@ -93,7 +93,7 @@ void calculateTile(int tile, float origZoom, float color[4]) {
 
     float zoom = origZoom + additionalZoom;
 
-    float yPos = (*parent.glGrid[2] + topMargin + (float) tiles[tile].posY * tileAndMarginCache + scrollDist + statusBarHeight) * zoom;
+    float yPos = (parent.glGrid[2] + topMargin + (float) tiles[tile].posY * tileAndMarginCache + scrollDist + statusBarHeight) * zoom;
     float xPos = tileXPosChache[tiles[tile].posX] * zoom;
     float xSize = (tileSizeCache + (float) (tiles[tile].spanX - 1) * tileAndMarginCache) * zoom;
     float ySize = (tileSizeCache + (float) (tiles[tile].spanY - 1) * tileAndMarginCache) * zoom;
@@ -109,9 +109,9 @@ void calculateTile(int tile, float origZoom, float color[4]) {
             xPos, yPos + ySize, zPos
     };
 
-    memcpy(tiles[tile].vertBuffer, verticies, tiles[tile].vertBufferSize);
+    memcpy(tiles[tile].vertBuffer, verticies, sizeof(tiles[tile].vertBuffer));
 
-    memcpy(tiles[tile].drawListBuffer, *parent.inds, tiles[tile].drawListBufferSize);
+    memcpy(tiles[tile].drawListBuffer, parent.inds, sizeof(tiles[tile].drawListBuffer));
 }
 
 void initEnterAnimation() {
@@ -125,8 +125,8 @@ void initEnterAnimation() {
         enterTemporalOffsets[1] = enterDuration;
     }
 
-    rowsOnScreen = abs(*parent.glGrid[3] - *parent.glGrid[2]) / tileAndMarginCache;
-    startTileIndex = (int) (((abs(*parent.glGrid[3] - *parent.glGrid[2]) - statusBarHeight - topMargin + scrollDist)) / tileAndMarginCache);
+    rowsOnScreen = abs(parent.glGrid[3] - parent.glGrid[2]) / tileAndMarginCache;
+    startTileIndex = (int) (((abs(parent.glGrid[3] - parent.glGrid[2]) - statusBarHeight - topMargin + scrollDist)) / tileAndMarginCache);
 }
 
 void initExitAnimation(int location[2]) {
@@ -134,9 +134,9 @@ void initExitAnimation(int location[2]) {
     entering = false;
     exiting = true;
 
-    memcpy(exitTapTileLoc, location, 2);
+    memcpy(exitTapTileLoc, location, sizeof(exitTapTileLoc));
 
-    rowsOnScreen = abs(*parent.glGrid[3] - *parent.glGrid[2]) / tileAndMarginCache;
+    rowsOnScreen = abs(parent.glGrid[3] - parent.glGrid[2]) / tileAndMarginCache;
 
     float x = (exitStartPos + (float) location[1] + appTileOffset) - rowsOnScreen;
     if (x > 0) {
@@ -211,7 +211,7 @@ void performExitAnimation(double progress) {
 bool tileTouched(int tile) {
     float t[] = {
             tileXPosChache[tiles[tile].posX],
-            *parent.glGrid[2] + topMargin + (float) tiles[tile].posY * tileAndMarginCache + scrollDist +
+            parent.glGrid[2] + topMargin + (float) tiles[tile].posY * tileAndMarginCache + scrollDist +
             statusBarHeight,
             tileSizeCache + (float) (tiles[tile].spanX - 1) * tileAndMarginCache,
             tileSizeCache + (float) (tiles[tile].spanY - 1) * tileAndMarginCache
@@ -326,24 +326,24 @@ void handleTouch(double elapsed) {
 }
 
 void cacheTileValues() {
-    tileSizeCache = ((*parent.glGrid[1] - *parent.glGrid[0]) - leftSideMargin - rightSideMargin - (gridWidth - 1) * tilesMargin) / gridWidth;
+    tileSizeCache = ((parent.glGrid[1] - parent.glGrid[0]) - leftSideMargin - rightSideMargin - (gridWidth - 1) * tilesMargin) / gridWidth;
 
     tileAndMarginCache = tileSizeCache + tilesMargin;
 
-    float xPos = *parent.glGrid[0] + rightSideMargin;
+    float xPos = parent.glGrid[0] + rightSideMargin;
     for (int i = 0; i < gridWidth; i++) {
         tileXPosChache[i] = xPos;
         xPos += tileAndMarginCache;
     }
 
-    statusBarHeight = (*parent.glGrid[3] - *parent.glGrid[2]) * statusBarHeightPercentage;
+    statusBarHeight = (parent.glGrid[3] - parent.glGrid[2]) * statusBarHeightPercentage;
 
     overscrollDist = 0.2090278f * 2 - topMargin - statusBarHeight;
 
-    navBarHeight = (*parent.glGrid[3] - *parent.glGrid[2]) * navBarHeightPercentage;
+    navBarHeight = (parent.glGrid[3] - parent.glGrid[2]) * navBarHeightPercentage;
 
     gridHeight = (float) gridHeightSpan * tileAndMarginCache;
-    gridOverscrollHeight = (gridHeight - (*parent.glGrid[3] - *parent.glGrid[2] - statusBarHeight - navBarHeight)) * -1.0f;
+    gridOverscrollHeight = (gridHeight - (parent.glGrid[3] - parent.glGrid[2] - statusBarHeight - navBarHeight)) * -1.0f;
 }
 
 void update(double elapsed) {
@@ -380,8 +380,8 @@ void update(double elapsed) {
 
     for (int i = 0; i < tiles.size(); i++) {
         //Swap buffers in tiles
-        memcpy(tiles[i].renderDrawListBuffer, tiles[i].drawListBuffer, tiles[i].drawListBufferSize);
-        memcpy(tiles[i].renderVertBuffer, tiles[i].vertBuffer, tiles[i].vertBufferSize);
-        memcpy(tiles[i].renderColorBuffer, tiles[i].colorBuffer, tiles[i].colorBufferSize);
+        memcpy(tiles[i].renderDrawListBuffer, tiles[i].drawListBuffer, sizeof(tiles[i].renderDrawListBuffer));
+        memcpy(tiles[i].renderVertBuffer, tiles[i].vertBuffer, sizeof(tiles[i].renderVertBuffer));
+        memcpy(tiles[i].renderColorBuffer, tiles[i].colorBuffer, sizeof(tiles[i].renderColorBuffer));
     }
 }
