@@ -297,7 +297,7 @@ void scroll(double elapsed, float divideBy) {
             scrollDist -= parent->dyTouch / divideBy;
         else if (scrollType == 1 && hScrollDist >= 0 && hScrollDist <= parent->glGrid[1] - parent->glGrid[0] ) {
             hScrollDist -= parent->dxTouch;
-            appDrawer = (hScrollDist > (parent->glGrid[1] - parent->glGrid[0]) / 2);
+            appDrawer = (hScrollDist > (parent->glGrid[1] - parent->glGrid[0] + appDrawerSwitchBlankSpace) / 2);
 
             if (parent->xVelocityTouch < -1.0) {
                 appDrawer = true;
@@ -309,8 +309,8 @@ void scroll(double elapsed, float divideBy) {
         if (hScrollDist < 0) {
             hScrollDist = 0;
             scrollType = -1;
-        } else if (hScrollDist > parent->glGrid[1] - parent->glGrid[0]) {
-            hScrollDist = parent->glGrid[1] - parent->glGrid[0];
+        } else if (hScrollDist > parent->glGrid[1] - parent->glGrid[0] + appDrawerSwitchBlankSpace) {
+            hScrollDist = parent->glGrid[1] - parent->glGrid[0] + appDrawerSwitchBlankSpace;
             scrollType = -1;
         }
     } else {
@@ -337,11 +337,13 @@ void overscrollEffect(bool top, double elapsed) {
 }
 
 void openCloseAppDrawer(double elapsed) {
+    parent->yVelocityTouch = 0.0f;
+
     if (drawerOpenProgress < 0) {
         if (!appDrawer)
             hScrollDist = 0;
         else
-            hScrollDist = parent->glGrid[1] - parent->glGrid[0];
+            hScrollDist = parent->glGrid[1] - parent->glGrid[0] + appDrawerSwitchBlankSpace;
         scrollType = -1;
         drawerOpenProgress = drawerOpenDuration;
 
@@ -349,7 +351,7 @@ void openCloseAppDrawer(double elapsed) {
     }
 
     if (appDrawer) {
-        hScrollDist = parent->glGrid[1] - parent->glGrid[0] - (float) drawerOpenInterpolator.getMulti(drawerOpenProgress, drawerOpenDuration) * (parent->glGrid[1] - parent->glGrid[0] - origHScrollDist);
+        hScrollDist = parent->glGrid[1] - parent->glGrid[0] - (float) drawerOpenInterpolator.getMulti(drawerOpenProgress, drawerOpenDuration) * ((parent->glGrid[1] - parent->glGrid[0] + appDrawerSwitchBlankSpace) - origHScrollDist);
     } else {
         hScrollDist = origHScrollDist * (float) drawerOpenInterpolator.getMulti(drawerOpenProgress, drawerOpenDuration);
     }

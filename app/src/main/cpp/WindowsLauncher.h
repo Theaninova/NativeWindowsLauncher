@@ -110,6 +110,9 @@ const float rightSideMargin = 0.0118056f * 2.0f;//0.01180 5 Period  Measured
 const float tilesMargin = 0.0097222f * 2.0f;    //0.0097  2 Period  Measured
 const float topMargin = tilesMargin;
 
+const float appDrawerLeftSideMargin = 0.0111111f * 2.0f;  //0.0 1 Period  Measured
+const float appDrawerSwitchBlankSpace = 0.0229167f * 2.0f - appDrawerLeftSideMargin - rightSideMargin; //0.02291 6 Preiod  Measured
+
 const double overscrollDuration = 0.5;
 
 //Fuctions for external use
