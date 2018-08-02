@@ -53,6 +53,8 @@ struct SharedValues {
 
     bool editMode = false;
 
+    void (*launchActivity)(char * name);
+
     std::vector<Tile> tiles;
 };
 
@@ -100,6 +102,7 @@ double fadeOutLoc[] = { 0.43, 0.29 };
 const double longTapDuraion = 0.75;
 
 const float editModeZoom = -0.1f;
+const float editModeTileScale = 0.95f;
 const float editModeSelectedZoom = -0.05f;
 const float editModeAlpha = 0.8f;
 const float editModeSelectedAlpha = 1.0f;
@@ -120,3 +123,4 @@ const double overscrollDuration = 0.5;
 void windows_launcher_init(SharedValues * mParent);
 void update(double elapsed);
 void cacheTileValues();
+void onResumeWLauncher();

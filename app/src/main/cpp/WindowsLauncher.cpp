@@ -3,6 +3,7 @@
 //
 
 #include "WindowsLauncher.h"
+#include "GLRender.h"
 
 
 AccExpInterpolator fadeInInterpolator = AccExpInterpolator(fadeInNum1, fadeInNum2, fadeInNum3, fadeInLoc);
@@ -145,6 +146,13 @@ void calculateTile(int tile, float origZoom, float color[4]) {
     float xSize = (tileSizeCache + (float) (parent->tiles[tile].spanX - 1) * tileAndMarginCache) * zoom;
     float ySize = (tileSizeCache + (float) (parent->tiles[tile].spanY - 1) * tileAndMarginCache) * zoom;
 
+    if (parent->editMode && tile != editModeSelectedTile) {
+        yPos = yPos + ((1.0f - editModeTileScale) * ySize) / 2;
+        xPos = xPos + ((1.0f - editModeTileScale) * xSize) / 2;
+        ySize = editModeTileScale * ySize;
+        xSize = editModeTileScale * xSize;
+    }
+
     float zPos = 0.5f + ((1.0f / zoom) / 2.0f);
     if (zoom < 1.0f)
         zPos = 0.5f - ((1.0f - zoom) / 2.0f);
@@ -271,6 +279,9 @@ bool tileTouched(int tile) {
 }
 
 void onTapEvent(bool longTap) {
+    parent->yVelocityTouch = 0.0f;
+    parent->xVelocityTouch = 0.0f;
+
     for (int i = 0; i < parent->tiles.size(); i++) {
         if (tileTouched(i)) {
             if (longTap) {
@@ -295,7 +306,7 @@ void scroll(double elapsed, float divideBy) {
     if (parent->fingerDown) {
         if (scrollType == 0)
             scrollDist -= parent->dyTouch / divideBy;
-        else if (scrollType == 1 && hScrollDist >= 0 && hScrollDist <= parent->glGrid[1] - parent->glGrid[0] ) {
+        else if (scrollType == 1 && hScrollDist >= 0 && hScrollDist <= parent->glGrid[1] - parent->glGrid[0] && !parent->editMode) {
             hScrollDist -= parent->dxTouch;
             appDrawer = (hScrollDist > (parent->glGrid[1] - parent->glGrid[0] + appDrawerSwitchBlankSpace) / 2);
 
@@ -362,6 +373,10 @@ void openCloseAppDrawer(double elapsed) {
 void handleTouch(double elapsed) {
     if (parent->fingerDown) {
         drawerOpenProgress = drawerOpenDuration;
+    }
+
+    if (parent->editMode) {
+        scrollType = 0;
     }
 
     if (parent->fingerDown && scrollType == -1) {
@@ -460,6 +475,8 @@ void update(double elapsed) {
 
     if (animProgress <= 0.0) {
         if (exiting) {
+            parent->launchActivity("com.google.android.calculator");
+
             initEnterAnimation();
             performNewEnterAnimation(animProgress);
         } else {
@@ -493,4 +510,8 @@ void update(double elapsed) {
         memcpy(parent->tiles[i].renderVertBuffer, parent->tiles[i].vertBuffer, sizeof(parent->tiles[i].renderVertBuffer));
         memcpy(parent->tiles[i].renderColorBuffer, parent->tiles[i].colorBuffer, sizeof(parent->tiles[i].renderColorBuffer));
     }
+}
+
+void onResumeWLauncher() {
+    initEnterAnimation();
 }

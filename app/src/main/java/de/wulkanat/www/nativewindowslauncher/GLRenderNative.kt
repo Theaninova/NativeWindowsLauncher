@@ -1,11 +1,12 @@
 package de.wulkanat.www.nativewindowslauncher
 
 import android.content.Context
+import android.content.Intent
 import android.opengl.GLSurfaceView
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class GLRenderNative(mContext: Context, statusBarHeight: Int, navBarHeight: Int) : GLSurfaceView.Renderer {
+class GLRenderNative(val mContext: Context, statusBarHeight: Int, navBarHeight: Int) : GLSurfaceView.Renderer {
     var mScreenWidth = 0
     var mScreenHeight = 0
 
@@ -43,6 +44,11 @@ class GLRenderNative(mContext: Context, statusBarHeight: Int, navBarHeight: Int)
 
     override fun onSurfaceCreated(p0: GL10?, p1: EGLConfig?) {
         on_surface_created()
+    }
+
+    fun launchActivity(name: String) {
+        val app = mContext.packageManager.getLaunchIntentForPackage(name)
+        mContext.startActivity(app)
     }
 
     external fun on_surface_created()

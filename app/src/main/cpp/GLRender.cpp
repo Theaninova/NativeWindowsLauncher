@@ -35,13 +35,20 @@ static GLint loadShader(GLenum type, const GLchar ** shaderCode) {
     return shader;
 }
 
+void launchActivity(char * name) {
+    jstring jstr = curr_env->NewStringUTF(name);
+    jclass clazz = curr_env->FindClass("de/wulkanat/www/nativewindowslauncher/GLRenderNative");
+    jmethodID myMethod = curr_env->GetMethodID(clazz, "launchActivity", "(Ljava/lang/String;)V");
+    curr_env->CallVoidMethod(curr_obj, myMethod, jstr);
+}
+
 void init(int mStatusBarHeightPixels, int mNavBarHeightPixels) {
     mLastTime = std::chrono::high_resolution_clock::now();
 
     statusBarHeightPixels = mStatusBarHeightPixels;
     navBarHeightPixels = mNavBarHeightPixels;
 
-
+    sharedValues.launchActivity = &launchActivity;
 
     windows_launcher_init(&sharedValues);
 }
@@ -52,6 +59,7 @@ void onPause() {
 
 void onResume() {
     mLastTime = std::chrono::high_resolution_clock::now();
+    onResumeWLauncher();
 }
 
 extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_init
@@ -82,7 +90,7 @@ extern "C" JNIEXPORT jfloatArray JNICALL Java_de_wulkanat_www_nativewindowslaunc
 }
 
 extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_on_1draw_1frame
-        (JNIEnv * env, jclass cls, float mxTouchPos, float myTouchPos, float mxVelocityTouch, float myVelocityTouch, float mdxTouch, float mdyTouch, bool mfingerDown, bool fingerMoved) {
+        (JNIEnv * env, jobject obj, float mxTouchPos, float myTouchPos, float mxVelocityTouch, float myVelocityTouch, float mdxTouch, float mdyTouch, bool mfingerDown, bool fingerMoved) {
     if (mfingerDown) {
         sharedValues.xTouchPos = mxTouchPos;
         sharedValues.yTouchPos = myTouchPos;
@@ -94,7 +102,13 @@ extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLR
     sharedValues.fingerDown = mfingerDown;
     sharedValues.fingerMoved = fingerMoved;
 
+    curr_env = env;
+    curr_obj = obj;
+
     on_draw_frame();
+
+    curr_env = nullptr;
+    curr_obj = nullptr;
 }
 
 extern "C" JNIEXPORT void JNICALL Java_de_wulkanat_www_nativewindowslauncher_GLRenderNative_onPause
