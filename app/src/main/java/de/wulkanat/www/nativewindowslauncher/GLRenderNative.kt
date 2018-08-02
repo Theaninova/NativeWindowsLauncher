@@ -1,8 +1,11 @@
 package de.wulkanat.www.nativewindowslauncher
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.LauncherApps
 import android.opengl.GLSurfaceView
+import android.view.animation.AnimationUtils
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -47,8 +50,17 @@ class GLRenderNative(val mContext: Context, statusBarHeight: Int, navBarHeight: 
     }
 
     fun launchActivity(name: String) {
+        val windowEnterAnimation = AnimationUtils.loadAnimation(mContext, R.anim.windows_mobile_animation_enter)
+
+        //val comp = ComponentName()
+
+        //val launcher = mContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+        //launcher.start
+
         val app = mContext.packageManager.getLaunchIntentForPackage(name)
         mContext.startActivity(app)
+
+
     }
 
     external fun on_surface_created()

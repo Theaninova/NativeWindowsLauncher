@@ -1,11 +1,51 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="android:windowAnimationStyle">@style/WindowsAnimation</item>
+    </style>
+
+
+    <style name="WindowsAnimation">
+        <!--<item name="android:activityOpenEnterAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:activityOpenExitAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:activityCloseEnterAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:activityCloseExitAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:taskOpenEnterAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:taskOpenExitAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:taskCloseEnterAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:taskCloseExitAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:taskToFrontEnterAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:taskToFrontExitAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:taskToBackEnterAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:taskToBackExitAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:wallpaperOpenEnterAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:wallpaperOpenExitAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:wallpaperCloseEnterAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:wallpaperCloseExitAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:wallpaperIntraOpenEnterAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:wallpaperIntraOpenExitAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:wallpaperIntraCloseEnterAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:wallpaperIntraCloseExitAnimation">@anim/windows_mobile_animation_exit</item>
+
+        <item name="android:launchTaskBehindTargetAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:launchTaskBehindSourceAnimation">@anim/windows_mobile_animation_exit</item>
+
+        <item name="android:fragmentOpenEnterAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:fragmentOpenExitAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:fragmentCloseEnterAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:fragmentCloseExitAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:fragmentFadeEnterAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:fragmentFadeExitAnimation">@anim/windows_mobile_animation_exit</item>
+
+        <item name="android:windowEnterAnimation">@anim/windows_mobile_animation_exit</item>
+        <item name="android:windowExitAnimation">@anim/windows_mobile_animation_exit</item>-->
     </style>
 
 </resources>
